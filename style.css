@@ -1,0 +1,1560 @@
+/* ==========================================================================
+   FocusFlow — Design System & Stylesheet
+   Crafted with strict spatial rhythm (4/8/12/16/24/32/48/64px),
+   anti-slop restraint, multi-layer ambient depth, and tactile micro-feedback.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Design Tokens & CSS Custom Properties
+   -------------------------------------------------------------------------- */
+:root {
+  /* Spatial System (Strict 8px grid math) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+
+  /* Radius Scale */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* Transitions & Micro-Feedback */
+  --transition-fast: 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-spring: 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Light Theme (Default) */
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-muted: #f1f5f9;
+  --bg-subtle: #f8fafc;
+
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-focus: #0f172a;
+
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-inverse: #ffffff;
+
+  /* Color Semantic Tokens (Required green/yellow/red palette) */
+  --color-done: #16a34a;          /* Green: completed / done */
+  --color-done-strong: #15803d;   /* Green with WCAG-friendly white text */
+  --color-done-subtle: #f0fdf4;
+  --color-done-border: rgba(22, 163, 74, 0.24);
+
+  --color-pending: #d97706;       /* Yellow / Amber: in-progress / medium */
+  --color-pending-subtle: #fffbeb;
+  --color-pending-border: rgba(217, 119, 6, 0.24);
+
+  --color-urgent: #dc2626;        /* Red: high-priority / overdue */
+  --color-urgent-subtle: #fef2f2;
+  --color-urgent-border: rgba(220, 38, 38, 0.24);
+
+  --color-low: #3b82f6;           /* Subtle blue / low priority */
+  --color-low-subtle: #eff6ff;
+  --color-low-border: rgba(59, 130, 246, 0.24);
+
+  /* Multi-Layer Ambient Depth (No harsh flat black outlines) */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 4px rgba(15, 23, 42, 0.02);
+  --shadow-md: 0 2px 4px rgba(15, 23, 42, 0.04), 0 8px 16px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 4px 6px rgba(15, 23, 42, 0.04), 0 16px 32px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.03), 0 4px 12px rgba(15, 23, 42, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(15, 23, 42, 0.12);
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --bg-app: #090d16;
+  --bg-surface: #111827;
+  --bg-surface-elevated: #1e293b;
+  --bg-muted: #1e293b;
+  --bg-subtle: #141d2e;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: #f8fafc;
+
+  --text-main: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+
+  --color-done: #22c55e;
+  --color-done-strong: #15803d;
+  --color-done-subtle: rgba(34, 197, 94, 0.12);
+  --color-done-border: rgba(34, 197, 94, 0.32);
+
+  --color-pending: #f59e0b;
+  --color-pending-subtle: rgba(245, 158, 11, 0.12);
+  --color-pending-border: rgba(245, 158, 11, 0.32);
+
+  --color-urgent: #ef4444;
+  --color-urgent-subtle: rgba(239, 68, 68, 0.14);
+  --color-urgent-border: rgba(239, 68, 68, 0.32);
+
+  --color-low: #60a5fa;
+  --color-low-subtle: rgba(96, 165, 250, 0.12);
+  --color-low-border: rgba(96, 165, 250, 0.32);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4), 0 8px 20px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 4px 10px rgba(0, 0, 0, 0.5), 0 20px 40px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.25), 0 8px 16px rgba(0, 0, 0, 0.3);
+  --shadow-focus: 0 0 0 3px rgba(255, 255, 255, 0.18);
+}
+
+/* --------------------------------------------------------------------------
+   2. Base Reset & Typography
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  color-scheme: light dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-smooth), color var(--transition-smooth);
+}
+
+.container {
+  width: 100%;
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   3. Interactive Micro-Feedback (Rule 4: scale(0.97) on :active <= 160ms)
+   -------------------------------------------------------------------------- */
+button,
+.btn-primary,
+.btn-secondary,
+.btn-ghost-danger,
+.btn-icon,
+.filter-tab,
+.custom-checkbox,
+.fab-add-btn {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  cursor: pointer;
+  transition: transform var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+button:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-ghost-danger:active,
+.btn-icon:active,
+.filter-tab:active,
+.fab-add-btn:active {
+  transform: scale(0.97);
+  transition-duration: 100ms;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+label:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* --------------------------------------------------------------------------
+   4. Header & Navigation
+   -------------------------------------------------------------------------- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background-color: var(--text-main);
+  color: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-main);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.brand-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* --------------------------------------------------------------------------
+   5. Buttons & Controls
+   -------------------------------------------------------------------------- */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  background-color: var(--text-main);
+  color: var(--bg-surface);
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  opacity: 0.92;
+}
+
+.btn-save {
+  background-color: var(--color-done);
+  color: #ffffff;
+}
+
+.btn-primary:disabled,
+.btn-primary[aria-busy="true"] {
+  opacity: 0.72;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.btn-spinner {
+  display: none;
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: btnSpin 700ms linear infinite;
+  flex: none;
+}
+
+.btn-save.is-loading .btn-spinner {
+  display: inline-block;
+}
+
+.btn-save.is-loading .btn-save-icon {
+  display: none;
+}
+
+@keyframes btnSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-muted);
+  color: var(--text-main);
+}
+
+.btn-compact {
+  min-height: 38px;
+  padding: var(--space-1) var(--space-3);
+  font-size: 0.8125rem;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-icon:hover {
+  background-color: var(--bg-muted);
+  color: var(--text-main);
+}
+
+.btn-ghost-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: var(--space-1) var(--space-3);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+}
+
+.btn-ghost-danger:hover {
+  background-color: var(--color-urgent-subtle);
+  color: var(--color-urgent);
+  border-color: var(--color-urgent-border);
+}
+
+.btn-file-label {
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Theme icon toggling */
+[data-theme="dark"] .icon-moon {
+  display: block;
+}
+[data-theme="dark"] .icon-sun {
+  display: none;
+}
+:root:not([data-theme="dark"]) .icon-moon {
+  display: none;
+}
+:root:not([data-theme="dark"]) .icon-sun {
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   6. Main Layout & Overview
+   -------------------------------------------------------------------------- */
+.main-layout {
+  flex: 1;
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.overview-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-6);
+  box-shadow: var(--shadow-card);
+}
+
+/* --------------------------------------------------------------------------
+   7. Task Creator Card
+   -------------------------------------------------------------------------- */
+.creator-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+}
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.form-main-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.input-with-icon {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.task-input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3) var(--space-2) 42px;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-subtle);
+  color: var(--text-main);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.task-input:focus {
+  background-color: var(--bg-surface);
+  border-color: var(--border-focus);
+}
+
+.task-input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding-top: var(--space-1);
+}
+
+.meta-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.meta-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.meta-select,
+.meta-date {
+  min-height: 34px;
+  padding: var(--space-1) var(--space-2);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: var(--text-main);
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.meta-select:focus,
+.meta-date:focus {
+  border-color: var(--border-focus);
+  background-color: var(--bg-surface);
+}
+
+.keyboard-hint {
+  margin-left: auto;
+}
+
+.kbd-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+kbd {
+  padding: 2px 5px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   8. Toolbar: Search Bar & Refined Filter Tabs
+   -------------------------------------------------------------------------- */
+.toolbar-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) 36px var(--space-2) 38px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.search-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-md);
+}
+
+.search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: var(--space-2);
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+
+.clear-search-btn:hover {
+  color: var(--text-main);
+  background-color: var(--bg-muted);
+}
+
+/* High-Craft Refined Filter Bar */
+.filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 6px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow-x: auto;
+}
+
+.filter-tab {
+  flex: 1;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.filter-tab:hover {
+  color: var(--text-main);
+  background-color: var(--bg-muted);
+}
+
+.filter-tab.active {
+  background-color: var(--text-main);
+  color: var(--bg-surface);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  border-color: transparent;
+}
+
+.counter-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.filter-tab.active .counter-badge {
+  background-color: rgba(255, 255, 255, 0.22);
+  color: var(--bg-surface);
+}
+
+[data-theme="dark"] .filter-tab.active .counter-badge {
+  background-color: rgba(0, 0, 0, 0.28);
+  color: var(--text-main);
+}
+
+/* --------------------------------------------------------------------------
+   9. Sub-bar & Status
+   -------------------------------------------------------------------------- */
+.list-subbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-2);
+}
+
+.list-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.drag-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+/* --------------------------------------------------------------------------
+   10. Task List & Task Cards
+   -------------------------------------------------------------------------- */
+.task-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-smooth);
+}
+
+.task-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+[data-theme="dark"] .task-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.task-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--space-2);
+  bottom: var(--space-2);
+  width: 3px;
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background-color: transparent;
+  transition: background-color var(--transition-fast);
+}
+
+.task-card[data-priority="high"]::before {
+  background-color: var(--color-urgent);
+}
+
+.task-card[data-priority="medium"]::before {
+  background-color: var(--color-pending);
+}
+
+.task-card[data-priority="low"]::before {
+  background-color: var(--color-low);
+}
+
+.task-card.is-completed::before {
+  background-color: var(--color-done);
+}
+
+.checkbox-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-checkbox {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  border: 1.8px solid var(--text-muted);
+  background-color: var(--bg-surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-spring);
+}
+
+.custom-checkbox:hover {
+  border-color: var(--text-main);
+}
+
+.custom-checkbox .check-svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--text-inverse);
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  transition: stroke-dashoffset 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.task-card.is-completed .custom-checkbox {
+  background-color: var(--color-done);
+  border-color: var(--color-done);
+  transform: scale(1.05);
+}
+
+.task-card.is-completed .custom-checkbox .check-svg {
+  stroke-dashoffset: 0;
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  cursor: default;
+}
+
+.task-title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.4;
+  word-break: break-word;
+  position: relative;
+  transition: color var(--transition-fast);
+}
+
+.task-card.is-completed .task-title {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--text-muted);
+}
+
+.task-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  line-height: 1.2;
+}
+
+.badge-priority-high {
+  background-color: var(--color-urgent-subtle);
+  color: var(--color-urgent);
+  border: 1px solid var(--color-urgent-border);
+}
+
+.badge-priority-medium {
+  background-color: var(--color-pending-subtle);
+  color: var(--color-pending);
+  border: 1px solid var(--color-pending-border);
+}
+
+.badge-priority-low {
+  background-color: var(--color-low-subtle);
+  color: var(--color-low);
+  border: 1px solid var(--color-low-border);
+}
+
+.badge-due {
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.badge-due.is-overdue {
+  background-color: var(--color-urgent-subtle);
+  color: var(--color-urgent);
+  border-color: var(--color-urgent-border);
+  font-weight: 700;
+}
+
+.badge-due.is-today {
+  background-color: var(--color-pending-subtle);
+  color: var(--color-pending);
+  border-color: var(--color-pending-border);
+}
+
+.badge-note {
+  background-color: var(--color-low-subtle);
+  color: var(--color-low);
+  border: 1px solid var(--color-low-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  opacity: 0.85;
+}
+
+.task-card:hover .task-actions {
+  opacity: 1;
+}
+
+.btn-card-action {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+
+.btn-card-action:hover {
+  background-color: var(--bg-muted);
+  color: var(--text-main);
+  border-color: var(--border-subtle);
+}
+
+.btn-card-action.action-note.has-note {
+  color: var(--color-low);
+  background-color: var(--color-low-subtle);
+  border-color: var(--color-low-border);
+}
+
+.btn-card-action.action-note.has-note:hover {
+  color: var(--color-low);
+  border-color: var(--color-low);
+}
+
+.btn-card-action.action-delete:hover {
+  background-color: var(--color-urgent-subtle);
+  color: var(--color-urgent);
+  border-color: var(--color-urgent-border);
+}
+
+/* Inline Editing Mode */
+.task-card.is-editing {
+  background-color: var(--bg-surface-elevated);
+  border-color: var(--text-main);
+  box-shadow: var(--shadow-md);
+}
+
+.inline-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.inline-edit-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  padding: var(--space-1) var(--space-2);
+  color: var(--text-main);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.inline-edit-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.inline-meta-inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.inline-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.btn-edit-save {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background-color: var(--text-main);
+  color: var(--bg-surface);
+  border: none;
+}
+
+.btn-edit-cancel {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+/* --------------------------------------------------------------------------
+   11. Dedicated Multi-Note Page Styles
+   -------------------------------------------------------------------------- */
+.note-editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.note-task-card-section,
+.notes-section {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+}
+
+.note-card-header-row,
+.notes-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.notes-section-header {
+  align-items: flex-start;
+}
+
+.notes-heading-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.notes-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.notes-summary {
+  font-variant-numeric: tabular-nums;
+}
+
+.note-save-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.note-save-state::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex: none;
+}
+
+.note-save-state[data-state="dirty"] {
+  color: var(--color-pending);
+}
+
+.note-save-state[data-state="saving"] {
+  color: var(--color-low);
+}
+
+.note-save-state[data-state="saved"] {
+  color: var(--color-done);
+}
+
+.section-kicker {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.note-timestamps {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.notes-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.notes-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.note-card-item {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.note-card-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--space-4);
+  bottom: var(--space-4);
+  width: 3px;
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background-color: transparent;
+  transition: background-color var(--transition-fast);
+}
+
+.note-card-item.is-done {
+  border-color: var(--color-done-border);
+}
+
+.note-card-item.is-done::before {
+  background-color: var(--color-done);
+}
+
+.note-card-item.is-done .note-card-index {
+  color: var(--color-done);
+}
+
+.note-card-item:focus-within,
+.note-card-item.is-target {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-md);
+  background-color: var(--bg-surface);
+}
+
+.note-card-top-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.note-card-heading,
+.note-card-aside {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.note-card-aside {
+  margin-left: auto;
+}
+
+.note-card-index {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.note-card-timestamp {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Per-note completion control */
+.note-done-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+}
+
+.note-done-option {
+  min-height: 28px;
+  padding: 2px 9px;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-secondary);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.note-done-option:hover {
+  color: var(--text-main);
+}
+
+.note-done-option[aria-pressed="true"] {
+  background-color: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+}
+
+.note-done-option[data-done="true"][aria-pressed="true"] {
+  background-color: var(--color-done-strong);
+  border-color: var(--color-done-strong);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.notes-empty-state {
+  padding: var(--space-8) var(--space-4);
+}
+
+.textarea-container {
+  position: relative;
+  width: 100%;
+}
+
+.note-card-textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: var(--space-3);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--text-main);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+}
+
+.note-card-textarea:focus {
+  border-color: var(--border-focus);
+}
+
+.note-card-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.note-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.keyboard-shortcuts-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.note-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Floating Action Button (FAB) for Add Note */
+.fab-add-btn {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 50;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--color-done);
+  color: #ffffff;
+  border: none;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.fab-add-btn:hover {
+  transform: scale(1.06);
+  opacity: 0.95;
+}
+
+.fab-add-btn:active {
+  transform: scale(0.94);
+}
+
+/* --------------------------------------------------------------------------
+   12. Empty & Error States
+   -------------------------------------------------------------------------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  background-color: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.empty-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: var(--bg-muted);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+}
+
+.error-icon-wrapper {
+  background-color: var(--color-urgent-subtle);
+  color: var(--color-urgent);
+}
+
+.empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: var(--tracking-tight);
+}
+
+.empty-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+  max-width: 45ch;
+}
+
+/* --------------------------------------------------------------------------
+   13. Toast System
+   -------------------------------------------------------------------------- */
+.toast-container {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-width: 300px;
+  max-width: 420px;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--text-main);
+  color: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.875rem;
+  animation: toastSlideUp 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast.is-leaving {
+  animation: toastSlideDown 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toastSlideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.toast-message {
+  flex: 1;
+  word-break: break-word;
+}
+
+.toast-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.btn-toast-close {
+  background: transparent;
+  border: none;
+  color: var(--bg-surface);
+  opacity: 0.75;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-toast-close:hover {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   14. Footer
+   -------------------------------------------------------------------------- */
+.app-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   15. Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .header-inner {
+    height: 56px;
+  }
+
+  .brand-title {
+    font-size: 1rem;
+  }
+
+  .btn-text {
+    display: none;
+  }
+
+  .note-task-card-section,
+  .notes-section {
+    padding: var(--space-4);
+  }
+
+  .notes-section-header {
+    flex-wrap: wrap;
+  }
+
+  .notes-heading-group {
+    flex: 1 1 60%;
+  }
+
+  .note-card-heading {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+
+  .note-card-aside {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .note-done-option {
+    min-height: 30px;
+    padding: 2px 10px;
+  }
+
+  .note-actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .note-action-buttons {
+    flex-direction: column;
+  }
+
+  .note-action-buttons button {
+    width: 100%;
+  }
+
+  .keyboard-shortcuts-hint {
+    display: none;
+  }
+
+  .fab-add-btn {
+    bottom: var(--space-4);
+    right: var(--space-4);
+    width: 50px;
+    height: 50px;
+  }
+}
