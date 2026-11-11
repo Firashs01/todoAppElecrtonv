@@ -60,14 +60,20 @@ Designed with strict adherence to **anti-slop design principles**, multi-layer a
 ## 📁 Project Structure
 
 ```text
-TodoApp/
-├── index.html       # Main task list & dashboard
-├── note.html        # Dedicated task note editor page
-├── style.css        # Design system tokens, 8px grid, dark mode & animations
-├── storage.js       # Shared localStorage & task normalization module
-├── app.js           # Main task list controller & interaction engine
-├── note.js          # Multi-note controller, per-note done state & save-in-place logic
-└── README.md        # Documentation and JSON format schema
+TodoAppElectron/
+├── main.js           # Electron main process (secure window + lifecycle)
+├── preload.js        # contextBridge / ipcRenderer bridge (no Node leakage)
+├── package.json      # Electron dependency + npm scripts
+├── package-lock.json # Lockfile
+├── smoke-test.js     # Headless smoke test (`npm test`)
+├── src/              # Existing web frontend (unchanged markup/styles/logic)
+│   ├── index.html    # Main task list & dashboard
+│   ├── note.html     # Dedicated task note editor page
+│   ├── style.css     # Design system tokens, 8px grid, dark mode & animations
+│   ├── storage.js    # Shared localStorage & task normalization module
+│   ├── app.js        # Main task list controller & interaction engine
+│   └── note.js       # Multi-note controller, per-note done state & save-in-place logic
+└── README.md         # Documentation and JSON format schema
 ```
 
 ---
@@ -132,16 +138,44 @@ Older single-note files containing only `note` / `noteUpdatedAt` are still impor
 
 ---
 
-## 🚀 Getting Started
+## 🖥️ Running as an Electron Desktop App
 
-No build step or Node.js server required.
+The existing static site is wrapped in a secure Electron shell. The web UI is
+loaded unchanged from the local file system via `file://`, so markup, styles,
+business logic, localStorage persistence, and the `index.html ↔ note.html?id=…`
+navigation all behave exactly as they do in a browser.
 
-1. Open `index.html` in any modern web browser:
-   ```sh
-   # On Linux
-   xdg-open index.html
+### Install & run
 
-   # Or serve locally
-   python3 -m http.server 8000
-   ```
-2. Click the notepad icon on any task card to open its dedicated notes page (`note.html?id=...`).
+```sh
+# 1. Install the Electron dependency (devDependencies)
+npm install
+
+# 2. Launch the desktop app
+npm start
+```
+
+### Test without breaking existing behavior
+
+```sh
+# Headless smoke test: verifies the task list, the note editor, the preload
+# bridge, and the Content Security Policy render correctly inside Electron.
+npm test
+```
+
+> On locked-down CI/containers that lack a display or the Chromium sandbox,
+> the smoke test already runs headlessly (`--ozone-platform=headless`); if a
+> specific container also forbids user namespaces, add the flag manually:
+> `npx electron --no-sandbox smoke-test.js`.
+
+### Run the original web app (no Electron)
+
+No build step or server required:
+
+```sh
+xdg-open src/index.html
+# or serve locally:
+python3 -m http.server 8000 --directory src
+```
+
+Click the notepad icon on any task card to open its notes page (`note.html?id=…`).
