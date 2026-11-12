@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="FocusFlow Productivity Statistics & Time-Tracking Dashboard — pure CSS/SVG analytics, weekday vs weekend comparison, and task lifecycle metrics.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'">
+  <title>Statistics & Time Tracking — FocusFlow</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-inner container">
+      <div class="brand">
+        <a href="index.html" class="brand-link" title="Return to tasks">
+          <div class="brand-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 11 12 14 22 4"></polyline>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1 class="brand-title">FocusFlow</h1>
+            <span class="brand-subtitle">Analytics &amp; Time Tracking</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="header-actions">
+        <a href="notes.html" class="btn-secondary btn-compact" id="notesNavBtn" title="Open Notes workspace">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          <span class="btn-text">Notes</span>
+        </a>
+
+        <button id="themeToggleBtn" class="btn-icon" aria-label="Toggle dark mode" title="Toggle theme (Light / Dark)">
+          <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <a href="index.html" class="btn-secondary btn-compact" id="backToTasksBtn" title="Return to task list">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span class="btn-text">Back to Tasks</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="container main-layout stats-main-layout">
+    <!-- Dashboard Top Bar / Controls -->
+    <div class="stats-header-bar">
+      <div>
+        <h2 class="stats-view-title">Productivity &amp; Focus Dashboard</h2>
+        <p class="stats-view-subtitle">Live time tracking, lifecycle counters, and completion trends.</p>
+      </div>
+      <div class="stats-top-actions">
+        <span class="live-tracker-badge" id="liveTrackerBadge" title="Actively tracking focus time">
+          <span class="live-pulse-dot" aria-hidden="true"></span>
+          <span>Live Tracking Active</span>
+        </span>
+        <button type="button" id="resetStatsBtn" class="btn-ghost-danger btn-compact" title="Reset all historical stats">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          <span>Reset Stats</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 1. Top Summary KPI Cards (5 Cards) -->
+    <section class="kpi-cards-grid" aria-label="Key performance indicators">
+      <!-- KPI 1: Total Time in App -->
+      <div class="kpi-card" id="cardKpiTotalTime">
+        <div class="kpi-icon-wrap kpi-icon-time" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total Time in App</span>
+          <span class="kpi-value" id="kpiTotalTime">0s</span>
+          <span class="kpi-subtext">All-time active duration</span>
+        </div>
+      </div>
+
+      <!-- KPI 2: Today's Focus Time -->
+      <div class="kpi-card" id="cardKpiTodayTime">
+        <div class="kpi-icon-wrap kpi-icon-today" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Today's Focus Time</span>
+          <span class="kpi-value" id="kpiTodayTime">0s</span>
+          <span class="kpi-subtext" id="kpiTodaySubtext">Tracked today</span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Tasks Completed -->
+      <div class="kpi-card" id="cardKpiCompleted">
+        <div class="kpi-icon-wrap kpi-icon-completed" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Tasks Completed</span>
+          <span class="kpi-value" id="kpiCompletedTasks">0</span>
+          <span class="kpi-subtext kpi-rate-subtext" id="kpiCompletionRate">0% completion rate</span>
+        </div>
+      </div>
+
+      <!-- KPI 4: Tasks Deleted -->
+      <div class="kpi-card" id="cardKpiDeleted">
+        <div class="kpi-icon-wrap kpi-icon-deleted" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Tasks Deleted</span>
+          <span class="kpi-value" id="kpiDeletedTasks">0</span>
+          <span class="kpi-subtext">Lifetime removed tasks</span>
+        </div>
+      </div>
+
+      <!-- KPI 5: Active / Remaining Tasks -->
+      <div class="kpi-card" id="cardKpiActive">
+        <div class="kpi-icon-wrap kpi-icon-active" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Active / Remaining</span>
+          <span class="kpi-value" id="kpiActiveTasks">0</span>
+          <span class="kpi-subtext">Current open objectives</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Dual Column: Today's Activity & Productivity Breakdown -->
+    <div class="stats-dual-row">
+      <!-- Today's Activity Card -->
+      <section class="overview-card stats-card" aria-label="Today's detailed activity">
+        <div class="stats-card-header">
+          <div class="stats-card-title-group">
+            <h3 class="stats-section-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <span>Today's Activity</span>
+            </h3>
+            <span class="section-kicker" id="todayDateLabel">Today</span>
+          </div>
+        </div>
+
+        <div class="today-metrics-grid">
+          <div class="today-metric-cell">
+            <span class="today-cell-label">Completed Today</span>
+            <span class="today-cell-value text-color-done" id="todayCompleted">0</span>
+          </div>
+          <div class="today-metric-cell">
+            <span class="today-cell-label">Created Today</span>
+            <span class="today-cell-value text-color-pending" id="todayCreated">0</span>
+          </div>
+          <div class="today-metric-cell">
+            <span class="today-cell-label">Deleted Today</span>
+            <span class="today-cell-value text-color-urgent" id="todayDeleted">0</span>
+          </div>
+          <div class="today-metric-cell">
+            <span class="today-cell-label">Time Spent Today</span>
+            <span class="today-cell-value text-color-low" id="todayTimeSpent">0s</span>
+          </div>
+        </div>
+
+        <div class="today-momentum-message" id="todayMomentumMessage">
+          Keep the rhythm going. Every completed task builds daily momentum.
+        </div>
+      </section>
+
+      <!-- Productivity & Task Status Breakdown -->
+      <section class="overview-card stats-card" aria-label="Task status and productivity breakdown">
+        <div class="stats-card-header">
+          <div class="stats-card-title-group">
+            <h3 class="stats-section-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+              </svg>
+              <span>Task Status Ratio</span>
+            </h3>
+            <span class="section-kicker">Lifecycle Mix</span>
+          </div>
+        </div>
+
+        <div class="status-ratio-container">
+          <!-- Stacked multi-segment bar -->
+          <div class="status-stacked-bar" role="progressbar" aria-label="Task status distribution">
+            <div class="segment-fill fill-completed" id="segCompleted" style="width: 0%" title="Completed"></div>
+            <div class="segment-fill fill-active" id="segActive" style="width: 0%" title="Active"></div>
+            <div class="segment-fill fill-deleted" id="segDeleted" style="width: 0%" title="Deleted"></div>
+          </div>
+
+          <!-- Legend -->
+          <div class="status-legend">
+            <div class="legend-item">
+              <span class="legend-dot dot-completed" aria-hidden="true"></span>
+              <span class="legend-name">Completed</span>
+              <span class="legend-stat" id="statCompletedPct">0 (0%)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot dot-active" aria-hidden="true"></span>
+              <span class="legend-name">Active</span>
+              <span class="legend-stat" id="statActivePct">0 (0%)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot dot-deleted" aria-hidden="true"></span>
+              <span class="legend-name">Deleted</span>
+              <span class="legend-stat" id="statDeletedPct">0 (0%)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 3. 7-Day Activity Visual Chart (Pure CSS/SVG) -->
+    <section class="overview-card stats-card" aria-label="7-Day Activity Trend Chart">
+      <div class="stats-card-header">
+        <div class="stats-card-title-group">
+          <h3 class="stats-section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span>7-Day Activity Trend</span>
+          </h3>
+          <span class="section-kicker">Daily Output &amp; Focus</span>
+        </div>
+
+        <!-- Metric Switcher Tabs -->
+        <div class="chart-metric-switcher" role="tablist" aria-label="Select chart metric view">
+          <button type="button" class="chart-tab active" data-chart-metric="completed" id="chartTabCompleted">
+            <span>Tasks Done</span>
+          </button>
+          <button type="button" class="chart-tab" data-chart-metric="time" id="chartTabTime">
+            <span>Focus Time</span>
+          </button>
+          <button type="button" class="chart-tab" data-chart-metric="both" id="chartTabBoth">
+            <span>Dual View</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pure SVG/CSS 7-Day Chart Container -->
+      <div class="chart-container" id="chartContainer">
+        <div id="chartSvgWrapper" class="chart-svg-wrapper">
+          <!-- Dynamically injected responsive SVG chart -->
+        </div>
+        <div id="chartTooltip" class="chart-tooltip" hidden></div>
+      </div>
+
+      <!-- Chart Legend / Weekend Highlight Indicator -->
+      <div class="chart-footer-legend">
+        <div class="chart-legend-item">
+          <span class="legend-color-chip chip-completed"></span>
+          <span>Tasks Completed</span>
+        </div>
+        <div class="chart-legend-item">
+          <span class="legend-color-chip chip-time"></span>
+          <span>Focus Time (min)</span>
+        </div>
+        <div class="chart-legend-item">
+          <span class="legend-color-chip chip-weekend"></span>
+          <span>Weekend Highlight</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Weekday vs. Weekend Productivity Comparison -->
+    <section class="overview-card stats-card" aria-label="Weekday versus weekend productivity comparison">
+      <div class="stats-card-header">
+        <div class="stats-card-title-group">
+          <h3 class="stats-section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10h-10z"></path>
+            </svg>
+            <span>Weekday vs. Weekend Comparison</span>
+          </h3>
+          <span class="section-kicker">Rhythm &amp; Balance</span>
+        </div>
+      </div>
+
+      <div class="comparison-grid">
+        <!-- Weekday Card -->
+        <div class="comparison-card comp-card-weekday">
+          <div class="comp-card-top">
+            <div class="comp-tag-badge badge-weekday">Monday – Friday</div>
+            <span class="comp-days-count" id="weekdayDaysRecorded">0 days tracked</span>
+          </div>
+          <div class="comp-metrics-list">
+            <div class="comp-metric-row">
+              <span class="comp-label">Total Completed</span>
+              <span class="comp-val" id="weekdayTotalCompleted">0 tasks</span>
+            </div>
+            <div class="comp-metric-row">
+              <span class="comp-label">Daily Average</span>
+              <span class="comp-val highlight-val" id="weekdayAvgCompleted">0.0 tasks / day</span>
+            </div>
+            <div class="comp-metric-row">
+              <span class="comp-label">Total Focus Time</span>
+              <span class="comp-val" id="weekdayTotalTime">0s</span>
+            </div>
+            <div class="comp-metric-row">
+              <span class="comp-label">Avg Focus Time</span>
+              <span class="comp-val highlight-val" id="weekdayAvgTime">0s / day</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekend Card -->
+        <div class="comparison-card comp-card-weekend">
+          <div class="comp-card-top">
+            <div class="comp-tag-badge badge-weekend">Saturday – Sunday</div>
+            <span class="comp-days-count" id="weekendDaysRecorded">0 days tracked</span>
+          </div>
+          <div class="comp-metrics-list">
+            <div class="comp-metric-row">
+              <span class="comp-label">Total Completed</span>
+              <span class="comp-val" id="weekendTotalCompleted">0 tasks</span>
+            </div>
+            <div class="comp-metric-row">
+              <span class="comp-label">Daily Average</span>
+              <span class="comp-val highlight-val" id="weekendAvgCompleted">0.0 tasks / day</span>
+            </div>
+            <div class="comp-metric-row">
+              <span class="comp-label">Total Focus Time</span>
+              <span class="comp-val" id="weekendTotalTime">0s</span>
+            </div>
+            <div class="comp-metric-row">
+              <span class="comp-label">Avg Focus Time</span>
+              <span class="comp-val highlight-val" id="weekendAvgTime">0s / day</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer container">
+    <p class="footer-text">
+      FocusFlow • Productivity &amp; Time Tracking Suite • Pure HTML5, CSS3, &amp; SVG
+    </p>
+  </footer>
+
+  <!-- Confirmation Modal for Reset Statistics -->
+  <dialog id="confirmResetModal" class="confirm-dialog" aria-labelledby="resetDialogTitle" aria-describedby="resetDialogDesc">
+    <div class="dialog-content">
+      <div class="dialog-icon-badge error-icon-wrapper" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+      <h3 id="resetDialogTitle" class="dialog-title">Reset all productivity statistics?</h3>
+      <p id="resetDialogDesc" class="dialog-desc">
+        This will clear your historical time tracking logs, completion counts, and deletion counters. Your current active tasks and notes will remain intact.
+      </p>
+      <div class="dialog-actions">
+        <button id="cancelResetBtn" class="btn-secondary" type="button">Cancel</button>
+        <button id="confirmResetActionBtn" class="btn-danger" type="button">Yes, reset statistics</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification System -->
+  <div id="toastContainer" class="toast-container" role="status" aria-live="assertive"></div>
+
+  <!-- Scripts -->
+  <script src="storage.js"></script>
+  <script src="stats.js"></script>
+</body>
+</html>

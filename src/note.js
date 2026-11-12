@@ -396,6 +396,7 @@
         if (confirm(`Delete task "${currentTask.title}"?`)) {
           const tasks = FocusFlowStorage.loadTasks().filter(t => t.id !== currentTaskId);
           FocusFlowStorage.saveTasks(tasks);
+          FocusFlowStorage.recordTaskDeleted(1);
           allowLeave = true;
           window.location.href = "index.html";
         }

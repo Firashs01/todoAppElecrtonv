@@ -105,6 +105,7 @@
       // Add to beginning of array
       this.tasks.unshift(newTask);
       FocusFlowStorage.saveTasks(this.tasks);
+      FocusFlowStorage.recordTaskCreated();
       return newTask;
     },
 
@@ -125,6 +126,11 @@
       if (!task) return;
       task.completed = !task.completed;
       FocusFlowStorage.saveTasks(this.tasks);
+      if (task.completed) {
+        FocusFlowStorage.recordTaskCompleted();
+      } else {
+        FocusFlowStorage.recordTaskUncompleted();
+      }
     },
 
     deleteTask(id) {
@@ -133,6 +139,7 @@
 
       const [removed] = this.tasks.splice(idx, 1);
       FocusFlowStorage.saveTasks(this.tasks);
+      FocusFlowStorage.recordTaskDeleted(1);
 
       // Save for Undo action
       this.undoStack = {
@@ -152,13 +159,16 @@
         const insertIdx = Math.min(Math.max(0, index), this.tasks.length);
         this.tasks.splice(insertIdx, 0, task);
         FocusFlowStorage.saveTasks(this.tasks);
+        FocusFlowStorage.recordTaskUndeleted(1);
         this.undoStack = null;
         return true;
       }
 
       if (this.undoStack.type === "bulk" && Array.isArray(this.undoStack.tasks)) {
+        const count = this.undoStack.tasks.length;
         this.tasks = [...this.tasks, ...this.undoStack.tasks];
         FocusFlowStorage.saveTasks(this.tasks);
+        FocusFlowStorage.recordTaskUndeleted(count);
         this.undoStack = null;
         return true;
       }
@@ -177,6 +187,7 @@
 
       this.tasks = this.tasks.filter(t => !t.completed);
       FocusFlowStorage.saveTasks(this.tasks);
+      FocusFlowStorage.recordTaskDeleted(completedTasks.length);
       return completedTasks.length;
     },
 
