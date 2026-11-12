@@ -1,27 +1,24 @@
-# FocusFlow — Native Vanilla To-Do Application with Task Notes
+# FocusFlow — Native To-Do, Notes & Productivity Analytics
 
-A high-fidelity, single-page personal task management suite built with **pure native HTML5, CSS3, and modern Vanilla JavaScript (ES6+)**. No frameworks, no external runtime libraries, no icon fonts.
+A high-fidelity personal productivity suite built with **pure native HTML5, CSS3, and modern Vanilla JavaScript (ES6+)**, packaged as a secure **Electron** desktop app. No frameworks, no external runtime libraries, no icon fonts.
+
+FocusFlow is split into three connected workspaces:
+
+- **Tasks** (`index.html`) — the main task list, per-task notes, and JSON import/export.
+- **Notes** (`notes.html`) — a freeform notes workspace with task tagging and note-to-task promotion.
+- **Stats** (`stats.html`) — a live productivity and time-tracking dashboard.
 
 Designed with strict adherence to **anti-slop design principles**, multi-layer ambient depth, strict 8px spatial rhythm, tactile micro-feedback, and accessible interactions.
 
 ---
 
-## ✨ Features & Notes Implementation
+## ✨ Features
 
-### 📝 Task Notes & Journal
-- **Dedicated Notes Page**: Every task has a dedicated multi-note editor (`note.html?id=TASK_ID`) accessible via the notepad button on each task card.
-- **Per-Note Done Status**: Each note has a `Not done` / `Done` segmented control. The state is stored as `completed` on the note and reflected by a green accent on the note card.
-- **Save Without Leaving**: **Save** persists changes in place, keeps your inputs and cursor position intact, shows a success toast, and never redirects. The notes header shows a live `Unsaved changes` / `Saving…` / `All changes saved` status.
-- **URL Note Anchor**: Saving a new or edited note updates the URL in place (`note.html?id=TASK_ID&note=NOTE_ID`) with `history.replaceState`, so refreshing or saving again targets the same note instead of creating duplicates.
-- **Visual Note Indicator**: Tasks with notes display a badge with the note count (`Note` or `3 notes`) and the note button gets an accent. The badge tooltip also reports how many notes are done.
-- **Auto-Resizing Textarea**: Fluid auto-resizing textarea that expands dynamically as you write.
-- **Timestamps**: Displays the last-saved timestamp per note; it only advances when the note's content or done state actually changes.
-- **Clear & Delete Notes**: Delete individual notes with confirmation; a single remaining note is cleared in place instead.
-- **Return Safeguards**: `Back`, `Esc`, refresh, and tab close warn when staged changes have not been saved. Filter and scroll position are preserved when returning to the task list via `sessionStorage`.
-
-### 📋 Core Task Management
-- **Add Tasks**: Fast input field with <kbd>Enter</kbd> key support, priority selector (High, Medium, Low), and due date picker.
+### 📋 Core Task Management (`index.html`)
+- **Add Tasks**: Fast input field with <kbd>Enter</kbd> support, priority selector (High, Medium, Low), and due date picker.
 - **Inline Editing**: Double-click any task title or click the Edit button to edit in place. Press <kbd>Enter</kbd> to save or <kbd>Esc</kbd> to cancel.
+- **Drag-and-Drop Reordering**: Reorder tasks directly in the list; the order is persisted.
+- **Search & Filter**: Keyword search plus All / Active / Completed / Overdue tabs, with a live result count.
 - **Micro-Interactions**: Custom checkbox with spring checkmark animation, strike-through transition, and priority color bars.
 - **Undoable Deletion**: Deleting single tasks or clearing completed tasks triggers a 5-second toast banner with an instant **Undo** button.
 - **Daily Momentum Progress**: Dynamic percentage bar with contextual feedback based on completion rate.
@@ -31,9 +28,43 @@ Designed with strict adherence to **anti-slop design principles**, multi-layer a
   - 🔵 **Low Priority**: Subtle slate-blue accent
   - 🟢 **Completed**: Emerald green accent
 
+### 📝 Per-Task Notes & Journal (`note.html?id=TASK_ID`)
+- **Dedicated Notes Page**: Every task has a dedicated multi-note editor accessible via the notepad button on each task card.
+- **Per-Note Done Status**: Each note has a `Not done` / `Done` segmented control. The state is stored as `completed` on the note and reflected by a green accent on the note card.
+- **Save Without Leaving**: **Save** persists changes in place, keeps your inputs and cursor position intact, shows a success toast, and never redirects. The notes header shows a live `Unsaved changes` / `Saving…` / `All changes saved` status.
+- **URL Note Anchor**: Saving a new or edited note updates the URL in place (`note.html?id=TASK_ID&note=NOTE_ID`) with `history.replaceState`, so refreshing or saving again targets the same note instead of creating duplicates.
+- **Visual Note Indicator**: Tasks with notes display a badge with the note count (`Note` or `3 notes`) and the note button gets an accent. The badge tooltip also reports how many notes are done.
+- **Auto-Resizing Textarea**: Fluid auto-resizing textarea that expands dynamically as you write.
+- **Timestamps**: Displays the last-saved timestamp per note; it only advances when the note's content or done state actually changes.
+- **Clear & Delete Notes**: Delete individual notes with confirmation; a single remaining note is cleared in place instead.
+- **Return Safeguards**: `Back`, `Esc`, refresh, and tab close warn when staged changes have not been saved. Filter and scroll position are preserved when returning to the task list via `sessionStorage`.
+
+### 🗒️ Notes Workspace (`notes.html`)
+- **Standalone Notes**: Create, edit, search, and delete freeform notes independently of any task, stored separately from the task list.
+- **Inline Editor Modal**: A focused note editor with title, body, task tagging, promotion status, save, and delete actions.
+- **Task Tagging**: Tag any note with one or more tasks. Tagged tasks appear as status-aware pills (active / done / missing) on the note card and in the editor.
+- **Note-to-Task Promotion**: Use **Start as Task** to promote a note into the Todo table. The note body becomes the task's first note, and the note is linked back to the created task.
+- **Promotion Status**: Promoted notes show a badge reflecting the linked task's live state — `In Todo Table`, `Done`, or `Task Deleted`. Deleted promotions can be re-promoted.
+- **Search & Counts**: Live search across note titles and bodies with a matching-result count.
+- **Dark Mode**: Shared theme preference across every workspace.
+
+### 📊 Productivity & Time Tracking (`stats.html`)
+- **KPI Cards**: Total time in app, today's focus time, tasks completed (with completion rate), tasks deleted, and active/remaining tasks.
+- **Today's Activity**: Completed, created, and deleted tasks for today plus time spent, with a contextual momentum message.
+- **Task Status Ratio**: Stacked bar and legend showing the completed / active / deleted lifecycle mix.
+- **7-Day Activity Trend**: Pure SVG/CSS chart with a metric switcher for **Tasks Done**, **Focus Time**, or **Dual View**, including hover tooltips and weekend highlighting.
+- **Weekday vs. Weekend Comparison**: Total and daily-average completed tasks and focus time for Monday–Friday versus Saturday–Sunday.
+- **Live Active-Time Tracking**: Time is recorded only while the app window is visible and focused, buffered and flushed on blur, hide, and unload.
+- **Reset Stats**: Reset historical statistics behind a confirmation dialog. Task data is left untouched.
+- **Dark Mode**: Shared theme preference across every workspace.
+
 ### 💾 Data Persistence & JSON Import/Export
-- **LocalStorage Persistence**: The task list syncs immediately on every addition, edit, deletion, toggle, and reorder. The note editor persists on **Save** (or <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>S</kbd>) and warns before leaving with unsaved changes.
-- **JSON Export**: Download a timestamped `tasks-YYYY-MM-DD.json` file including all task notes and timestamps.
+- **LocalStorage Persistence**: Tasks, standalone notes, statistics, and theme are all persisted locally.
+  - `focusflow_tasks_v1` — tasks and per-task notes
+  - `focusflow_notes_v1` — standalone notes workspace
+  - `focusflow_stats_v1` — productivity history and time tracking
+  - `focusflow_theme` — light/dark preference
+- **JSON Export**: Download a timestamped `tasks-YYYY-MM-DD.json` file including all tasks and their per-task notes/timestamps.
 - **JSON Import**: Upload any compatible JSON file with thorough schema validation, error feedback, backward compatibility with older task structures, and an undo option.
 - **Dark Mode**: Toggle light/dark themes with system preference detection and persistent preference storage.
 
@@ -49,11 +80,18 @@ Designed with strict adherence to **anti-slop design principles**, multi-layer a
 | <kbd>Enter</kbd> | Submit new task / Save inline edit |
 | <kbd>Esc</kbd> | Cancel inline editing / Clear search / Close modal |
 
-### Note Editor (`note.html`)
+### Per-Task Note Editor (`note.html`)
 | Shortcut | Action |
 | :--- | :--- |
 | <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>S</kbd> | Save notes and stay on the page |
 | <kbd>Esc</kbd> | Return to tasks (warns if changes are unsaved) |
+
+### Notes Workspace (`notes.html`)
+| Shortcut | Action |
+| :--- | :--- |
+| <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>N</kbd> | Create a new note |
+| <kbd>/</kbd> | Focus the notes search input |
+| <kbd>Esc</kbd> | Close the note editor |
 
 ---
 
@@ -63,16 +101,20 @@ Designed with strict adherence to **anti-slop design principles**, multi-layer a
 TodoAppElectron/
 ├── main.js           # Electron main process (secure window + lifecycle)
 ├── preload.js        # contextBridge / ipcRenderer bridge (no Node leakage)
-├── package.json      # Electron dependency + npm scripts
+├── package.json      # Electron deps, npm scripts, electron-forge packaging config
 ├── package-lock.json # Lockfile
 ├── smoke-test.js     # Headless smoke test (`npm test`)
-├── src/              # Existing web frontend (unchanged markup/styles/logic)
+├── src/              # Web frontend (unchanged markup/styles/logic)
 │   ├── index.html    # Main task list & dashboard
-│   ├── note.html     # Dedicated task note editor page
+│   ├── notes.html    # Standalone Notes workspace (tagging + promotion)
+│   ├── note.html     # Per-task multi-note editor page
+│   ├── stats.html    # Productivity & time-tracking dashboard
 │   ├── style.css     # Design system tokens, 8px grid, dark mode & animations
-│   ├── storage.js    # Shared localStorage & task normalization module
+│   ├── storage.js    # Shared task, notes & stats storage + time tracker
 │   ├── app.js        # Main task list controller & interaction engine
-│   └── note.js       # Multi-note controller, per-note done state & save-in-place logic
+│   ├── notes.js      # Standalone notes CRUD, tagging & note-to-task promotion
+│   ├── note.js       # Per-task notes controller & save-in-place logic
+│   └── stats.js      # Stats rendering, 7-day chart & weekday/weekend comparison
 └── README.md         # Documentation and JSON format schema
 ```
 
@@ -136,19 +178,39 @@ FocusFlow imports and exports tasks conforming to the following structure:
 
 Older single-note files containing only `note` / `noteUpdatedAt` are still imported and normalized into a one-item `notes` array with `completed: false`.
 
+### Standalone Notes Format
+
+Notes created in the Notes workspace are stored separately under `focusflow_notes_v1` (and are not included in the task JSON export):
+
+```json
+{
+  "id": "note_abc123",
+  "title": "Launch checklist",
+  "body": "Draft the announcement and review the release notes.",
+  "taggedTaskIds": ["task-seed-1"],
+  "promotedTaskId": "task-xyz789",
+  "createdAt": "2026-11-09T10:00:00.000Z",
+  "updatedAt": "2026-11-09T11:00:00.000Z"
+}
+```
+
+- **`taggedTaskIds`** (`string[]`, optional): Tasks this note is associated with.
+- **`promotedTaskId`** (`string`, optional): The task created from this note via **Start as Task**.
+
+### Statistics Format
+
+Statistics are stored under `focusflow_stats_v1` and include cumulative counters, per-day activity (`timeSeconds`, `completed`, `deleted`, `created`), and a bounded history log. Active time is accumulated only while the app is focused and visible.
+
 ---
 
 ## 🖥️ Running as an Electron Desktop App
 
-The existing static site is wrapped in a secure Electron shell. The web UI is
-loaded unchanged from the local file system via `file://`, so markup, styles,
-business logic, localStorage persistence, and the `index.html ↔ note.html?id=…`
-navigation all behave exactly as they do in a browser.
+The static site is wrapped in a secure Electron shell. The web UI is loaded unchanged from the local file system via `file://`, so markup, styles, business logic, localStorage persistence, and all workspace navigation (`index.html`, `notes.html`, `note.html?id=…`, `stats.html`) behave exactly as they do in a browser.
 
 ### Install & run
 
 ```sh
-# 1. Install the Electron dependency (devDependencies)
+# 1. Install dependencies (Electron + electron-forge)
 npm install
 
 # 2. Launch the desktop app
@@ -158,8 +220,8 @@ npm start
 ### Test without breaking existing behavior
 
 ```sh
-# Headless smoke test: verifies the task list, the note editor, the preload
-# bridge, and the Content Security Policy render correctly inside Electron.
+# Headless smoke test: verifies the task list, the per-task note editor,
+# the preload bridge, and the Content Security Policy render correctly.
 npm test
 ```
 
@@ -167,6 +229,16 @@ npm test
 > the smoke test already runs headlessly (`--ozone-platform=headless`); if a
 > specific container also forbids user namespaces, add the flag manually:
 > `npx electron --no-sandbox smoke-test.js`.
+
+### Package a distributable
+
+```sh
+# Build an unpacked app bundle
+npm run package
+
+# Build platform installers (Squirrel / ZIP / DEB via electron-forge)
+npm run make
+```
 
 ### Run the original web app (no Electron)
 
@@ -178,4 +250,4 @@ xdg-open src/index.html
 python3 -m http.server 8000 --directory src
 ```
 
-Click the notepad icon on any task card to open its notes page (`note.html?id=…`).
+Open **Notes** and **Stats** from the header, or click the notepad icon on any task card to open its per-task notes page (`note.html?id=…`).
