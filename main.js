@@ -16,8 +16,49 @@
 
 "use strict";
 
-const { app, BrowserWindow, shell } = require("electron");
+const { app, BrowserWindow, shell, ipcMain } = require("electron");
 const path = require("node:path");
+const notionService = require("./notionService");
+
+/**
+ * Validate that an external URL begins strictly with an approved protocol (https:// or notion://).
+ */
+function isValidExternalUrl(rawUrl) {
+  if (typeof rawUrl !== "string") return false;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return false;
+  return /^https:\/\//i.test(trimmed) || /^notion:\/\//i.test(trimmed);
+}
+
+// IPC handler for safely opening validated external URLs (Notion pages & web links)
+ipcMain.handle("open-external-url", async (_event, rawUrl) => {
+  if (!isValidExternalUrl(rawUrl)) {
+    throw new Error("Invalid URL protocol. Only https:// and notion:// links are allowed.");
+  }
+  await shell.openExternal(rawUrl.trim());
+  return true;
+});
+
+// Notion API IPC Handlers
+ipcMain.handle("notion-get-status", async () => {
+  return notionService.getStatus();
+});
+
+ipcMain.handle("notion-test-connection", async (_event, token) => {
+  return notionService.testConnection(token);
+});
+
+ipcMain.handle("notion-save-token", async (_event, token) => {
+  return notionService.saveToken(token);
+});
+
+ipcMain.handle("notion-disconnect", async () => {
+  return notionService.disconnect();
+});
+
+ipcMain.handle("notion-search-pages", async (_event, query) => {
+  return notionService.searchPages(query);
+});
 
 /**
  * Create the application window. Kept hidden until the renderer has finished
@@ -35,7 +76,8 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: true,
+      backgroundThrottling: false
     }
   });
 
@@ -63,7 +105,8 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, "src", "index.html"));
+  // Default startup route: Statistics Dashboard (Home)
+  mainWindow.loadFile(path.join(__dirname, "src", "stats.html"));
 
   return mainWindow;
 }

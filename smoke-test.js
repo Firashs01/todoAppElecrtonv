@@ -168,6 +168,77 @@ async function run() {
 
   check("missing task shows error state", errNote.errorShown === true && errNote.wrapperVisible === false);
 
+  // ---- 4. Statistics Dashboard as Default Home (stats.html) ----------------
+  console.log("\n[4] Loading src/stats.html (Default Home) …");
+  await win.loadFile(path.join(__dirname, "src", "stats.html"));
+
+  const stats = await win.webContents.executeJavaScript(`(() => {
+    const navStats = document.getElementById("navStatsBtn");
+    const brandLink = document.querySelector(".brand-link");
+    const kpiGrid = document.querySelector(".kpi-cards-grid");
+    return {
+      title: document.title,
+      statsActive: navStats ? navStats.classList.contains("active") : false,
+      brandLinksToStats: brandLink ? brandLink.getAttribute("href") === "stats.html" : false,
+      kpisRendered: !!kpiGrid
+    };
+  })()`);
+
+  check("stats page title is set", stats.title.length > 0, `title=${JSON.stringify(stats.title)}`);
+  check("stats nav button is highlighted as active (Default Home)", stats.statsActive === true);
+  check("brand logo links to stats.html", stats.brandLinksToStats === true);
+  check("KPI cards grid rendered", stats.kpisRendered === true);
+
+  // ---- 5. Activity Calendar & Day Detail View (calendar.html) --------------
+  console.log("\n[5] Loading src/calendar.html …");
+  await win.loadFile(path.join(__dirname, "src", "calendar.html"));
+
+  const cal = await win.webContents.executeJavaScript(`(() => {
+    const navCal = document.getElementById("navCalendarBtn");
+    const brandLink = document.querySelector(".brand-link");
+    const daysGrid = document.getElementById("calendarDaysGrid");
+    const dayCells = daysGrid ? daysGrid.querySelectorAll(".calendar-day-cell").length : 0;
+    const weekdays = document.querySelectorAll(".calendar-weekday-cell").length;
+
+    // Test clicking a date to trigger Day Detail View
+    const firstCell = daysGrid ? daysGrid.querySelector(".calendar-day-cell") : null;
+    const testDate = firstCell ? firstCell.getAttribute("data-date") : null;
+    if (firstCell) {
+      firstCell.click();
+    }
+    const monthViewHidden = document.getElementById("calendarMonthView").hidden;
+    const dayViewVisible = !document.getElementById("calendarDayView").hidden;
+    const dayTitle = document.getElementById("dayDetailTitle").textContent;
+    const hasTaskSection = !document.getElementById("dayTasksList").hidden || !document.getElementById("dayTasksEmptyState").hidden;
+    const hasNoteSection = !document.getElementById("dayNotesList").hidden || !document.getElementById("dayNotesEmptyState").hidden;
+
+    // Test back to calendar
+    document.getElementById("backToCalendarBtn").click();
+    const backToMonthSuccess = !document.getElementById("calendarMonthView").hidden;
+
+    return {
+      title: document.title,
+      calActive: navCal ? navCal.classList.contains("active") : false,
+      brandLinksToStats: brandLink ? brandLink.getAttribute("href") === "stats.html" : false,
+      weekdaysCount: weekdays,
+      dayCellsCount: dayCells,
+      dayDetailOpened: monthViewHidden && dayViewVisible,
+      dayDetailTitleSet: dayTitle.length > 0,
+      hasTaskSection,
+      hasNoteSection,
+      backToMonthSuccess
+    };
+  })()`);
+
+  check("calendar page title is set", cal.title.length > 0, `title=${JSON.stringify(cal.title)}`);
+  check("calendar nav button is highlighted as active", cal.calActive === true);
+  check("calendar brand logo links to stats.html", cal.brandLinksToStats === true);
+  check("7-column weekday headers rendered", cal.weekdaysCount === 7);
+  check("calendar grid rendered month day cells", cal.dayCellsCount >= 28, `cells=${cal.dayCellsCount}`);
+  check("clicking date cell transitions smoothly to Day Detail View", cal.dayDetailOpened === true);
+  check("day detail date title and sections rendered", cal.dayDetailTitleSet && cal.hasTaskSection && cal.hasNoteSection);
+  check("back to calendar button returns smoothly to Month View", cal.backToMonthSuccess === true);
+
   win.destroy();
   return { consoleErrors };
 }

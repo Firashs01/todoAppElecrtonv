@@ -261,12 +261,30 @@
                     value="${this.escapeHTML(currentTask.dueDate || "")}"
                     aria-label="Edit due date"
                   >
+                  <div class="inline-notion-field">
+                    <svg class="notion-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.69c-.466-.373-.84-.373-1.446-.326L3.62 2.39c-.466.047-.56.327-.373.513l1.212 1.305zm1.586 3.964v12.215c0 .793.42 1.072 1.259 1.025l13.448-.792c.793-.047.887-.606.887-1.166V6.958c0-.56-.467-.84-1.026-.793l-13.682.793c-.653.047-.886.42-.886 1.214zm11.754-.047c.14 0 .327.14.327.373v9.043c0 .56-.374.793-.84.84l-2.006.14c-.373.047-.466-.187-.466-.42v-6.39l-4.152 6.577c-.233.373-.513.513-.933.513h-.746c-.28 0-.466-.233-.466-.513V8.87c0-.513.373-.793.793-.84l2.1-.14c.373-.047.466.186.466.42v5.783l3.872-6.11c.233-.373.56-.513.886-.513l.167.047z"/>
+                    </svg>
+                    <input
+                      type="text"
+                      class="meta-input edit-notion-input"
+                      id="editTaskNotionUrlInput"
+                      value="${this.escapeHTML(currentTask.notionUrl || "")}"
+                      placeholder="Search Notion or paste link..."
+                      aria-label="Edit Notion link"
+                      autocomplete="off"
+                    >
+                    <input type="hidden" id="editTaskNotionTitleInput" value="${this.escapeHTML(currentTask.notionTitle || "")}">
+                    <input type="hidden" id="editTaskNotionIconInput" value="${this.escapeHTML(currentTask.notionIcon || "")}">
+                    <input type="hidden" id="editTaskNotionPageIdInput" value="${this.escapeHTML(currentTask.notionPageId || "")}">
+                  </div>
                 </div>
                 <div class="inline-actions">
                   <button type="button" id="cancelCardEditBtn" class="btn-edit-cancel">Cancel</button>
                   <button type="submit" class="btn-edit-save">Save Task</button>
                 </div>
               </div>
+              <div id="cardEditNotionError" class="inline-notion-error" hidden></div>
             </form>
           </div>
         `;
@@ -277,14 +295,54 @@
           titleInput.select();
         }
 
+        const editNotionInput = document.getElementById("editTaskNotionUrlInput");
+        const editNotionTitle = document.getElementById("editTaskNotionTitleInput");
+        const editNotionIcon = document.getElementById("editTaskNotionIconInput");
+        const editNotionPageId = document.getElementById("editTaskNotionPageIdInput");
+        if (editNotionInput && typeof NotionUI !== "undefined" && typeof NotionUI.attachPagePicker === "function") {
+          NotionUI.attachPagePicker(editNotionInput, {
+            onSelect: page => {
+              if (editNotionTitle) editNotionTitle.value = page.title || "";
+              if (editNotionIcon) editNotionIcon.value = page.icon || "";
+              if (editNotionPageId) editNotionPageId.value = page.id || "";
+            },
+            onClear: () => {
+              if (editNotionTitle) editNotionTitle.value = "";
+              if (editNotionIcon) editNotionIcon.value = "";
+              if (editNotionPageId) editNotionPageId.value = "";
+            }
+          });
+        }
+
         document.getElementById("cardEditForm").addEventListener("submit", e => {
           e.preventDefault();
           const newTitle = document.getElementById("editTaskTitleInput").value.trim();
           if (!newTitle) return;
 
+          const rawNotion = document.getElementById("editTaskNotionUrlInput")
+            ? document.getElementById("editTaskNotionUrlInput").value.trim()
+            : "";
+          if (rawNotion && !FocusFlowStorage.isValidNotionUrl(rawNotion)) {
+            const errEl = document.getElementById("cardEditNotionError");
+            if (errEl) {
+              errEl.textContent = "Please enter a valid Notion URL (https://... or notion://...)";
+              errEl.hidden = false;
+            }
+            document.getElementById("editTaskNotionUrlInput").focus();
+            return;
+          }
+
+          const rawNotionTitle = document.getElementById("editTaskNotionTitleInput") ? document.getElementById("editTaskNotionTitleInput").value.trim() : "";
+          const rawNotionIcon = document.getElementById("editTaskNotionIconInput") ? document.getElementById("editTaskNotionIconInput").value.trim() : "";
+          const rawNotionPageId = document.getElementById("editTaskNotionPageIdInput") ? document.getElementById("editTaskNotionPageIdInput").value.trim() : "";
+
           currentTask.title = newTitle;
           currentTask.priority = document.getElementById("editTaskPrioritySelect").value;
           currentTask.dueDate = document.getElementById("editTaskDueDateInput").value;
+          currentTask.notionUrl = rawNotion || null;
+          currentTask.notionTitle = rawNotion ? (rawNotionTitle || null) : null;
+          currentTask.notionIcon = rawNotion ? (rawNotionIcon || null) : null;
+          currentTask.notionPageId = rawNotion ? (rawNotionPageId || null) : null;
 
           isTaskEditing = false;
           this.renderTaskCard();
@@ -325,6 +383,63 @@
       const priorityBadgeClass = `badge-priority-${currentTask.priority}`;
       const priorityLabel = currentTask.priority.charAt(0).toUpperCase() + currentTask.priority.slice(1);
 
+      const hasNotion = Boolean(currentTask.notionUrl && typeof currentTask.notionUrl === "string" && currentTask.notionUrl.trim() !== "");
+      let notionWidgetHtml = "";
+      if (hasNotion) {
+        const displayTitle = currentTask.notionTitle || FocusFlowStorage.formatNotionDisplay(currentTask.notionUrl);
+        let iconHtml = "";
+        if (currentTask.notionIcon) {
+          if (currentTask.notionIcon.startsWith("http://") || currentTask.notionIcon.startsWith("https://")) {
+            iconHtml = `<img class="notion-badge-img" src="${this.escapeHTML(currentTask.notionIcon)}" alt="" aria-hidden="true" />`;
+          } else {
+            iconHtml = `<span class="notion-badge-emoji" aria-hidden="true">${this.escapeHTML(currentTask.notionIcon)}</span>`;
+          }
+        } else {
+          iconHtml = `<svg class="notion-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.69c-.466-.373-.84-.373-1.446-.326L3.62 2.39c-.466.047-.56.327-.373.513l1.212 1.305zm1.586 3.964v12.215c0 .793.42 1.072 1.259 1.025l13.448-.792c.793-.047.887-.606.887-1.166V6.958c0-.56-.467-.84-1.026-.793l-13.682.793c-.653.047-.886.42-.886 1.214zm11.754-.047c.14 0 .327.14.327.373v9.043c0 .56-.374.793-.84.84l-2.006.14c-.373.047-.466-.187-.466-.42v-6.39l-4.152 6.577c-.233.373-.513.513-.933.513h-.746c-.28 0-.466-.233-.466-.513V8.87c0-.513.373-.793.793-.84l2.1-.14c.373-.047.466.186.466.42v5.783l3.872-6.11c.233-.373.56-.513.886-.513l.167.047z"/>
+          </svg>`;
+        }
+
+        notionWidgetHtml = `
+          <div class="notion-linked-state">
+            <button type="button" class="badge badge-notion-pill" id="taskNotionOpenPill" title="Open in Notion: ${this.escapeHTML(displayTitle)} (${this.escapeHTML(currentTask.notionUrl)})">
+              ${iconHtml}
+              <span>${this.escapeHTML(displayTitle)}</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </button>
+            <div class="notion-linked-actions">
+              <button type="button" id="taskNotionEditBtn" class="btn-card-action" title="Edit Notion URL" aria-label="Edit Notion URL">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+              </button>
+              <button type="button" id="taskNotionUnlinkBtn" class="btn-card-action action-delete" title="Unlink Notion page" aria-label="Unlink Notion page">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        notionWidgetHtml = `
+          <div class="notion-unlinked-state">
+            <button type="button" id="taskLinkNotionBtn" class="btn-secondary btn-compact btn-notion-toggle" title="Link Notion page">
+              <svg class="notion-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.69c-.466-.373-.84-.373-1.446-.326L3.62 2.39c-.466.047-.56.327-.373.513l1.212 1.305zm1.586 3.964v12.215c0 .793.42 1.072 1.259 1.025l13.448-.792c.793-.047.887-.606.887-1.166V6.958c0-.56-.467-.84-1.026-.793l-13.682.793c-.653.047-.886.42-.886 1.214zm11.754-.047c.14 0 .327.14.327.373v9.043c0 .56-.374.793-.84.84l-2.006.14c-.373.047-.466-.187-.466-.42v-6.39l-4.152 6.577c-.233.373-.513.513-.933.513h-.746c-.28 0-.466-.233-.466-.513V8.87c0-.513.373-.793.793-.84l2.1-.14c.373-.047.466.186.466.42v5.783l3.872-6.11c.233-.373.56-.513.886-.513l.167.047z"/>
+              </svg>
+              <span>Link Notion</span>
+            </button>
+          </div>
+        `;
+      }
+
       DOM.taskCardContainer.innerHTML = `
         <div class="task-card ${currentTask.completed ? "is-completed" : ""}" data-id="${this.escapeHTML(currentTask.id)}" data-priority="${this.escapeHTML(currentTask.priority)}">
           <div class="checkbox-wrapper">
@@ -349,6 +464,30 @@
                 ${priorityLabel}
               </span>
               ${dueBadgeHtml}
+              <div class="notion-link-container" id="taskNotionContainer" style="display:inline-flex; margin-bottom:0;">
+                ${notionWidgetHtml}
+                <div id="taskNotionInputGroup" class="notion-input-group" hidden>
+                  <div class="notion-input-row">
+                    <svg class="notion-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.69c-.466-.373-.84-.373-1.446-.326L3.62 2.39c-.466.047-.56.327-.373.513l1.212 1.305zm1.586 3.964v12.215c0 .793.42 1.072 1.259 1.025l13.448-.792c.793-.047.887-.606.887-1.166V6.958c0-.56-.467-.84-1.026-.793l-13.682.793c-.653.047-.886.42-.886 1.214zm11.754-.047c.14 0 .327.14.327.373v9.043c0 .56-.374.793-.84.84l-2.006.14c-.373.047-.466-.187-.466-.42v-6.39l-4.152 6.577c-.233.373-.513.513-.933.513h-.746c-.28 0-.466-.233-.466-.513V8.87c0-.513.373-.793.793-.84l2.1-.14c.373-.047.466.186.466.42v5.783l3.872-6.11c.233-.373.56-.513.886-.513l.167.047z"/>
+                    </svg>
+                    <input
+                      type="text"
+                      id="taskNotionUrlInlineInput"
+                      class="meta-input inline-notion-input"
+                      placeholder="Search Notion or paste link..."
+                      aria-label="Notion page URL"
+                      autocomplete="off"
+                    >
+                    <input type="hidden" id="taskNotionInlineTitleInput" value="${this.escapeHTML(currentTask.notionTitle || "")}">
+                    <input type="hidden" id="taskNotionInlineIconInput" value="${this.escapeHTML(currentTask.notionIcon || "")}">
+                    <input type="hidden" id="taskNotionInlinePageIdInput" value="${this.escapeHTML(currentTask.notionPageId || "")}">
+                    <button type="button" id="taskNotionInlineSaveBtn" class="btn-primary btn-compact">Save</button>
+                    <button type="button" id="taskNotionInlineCancelBtn" class="btn-secondary btn-compact">Cancel</button>
+                  </div>
+                  <div id="taskNotionInlineError" class="notion-validation-msg" hidden></div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -380,6 +519,155 @@
           </div>
         </div>
       `;
+
+      // Notion link event listeners
+      const openPill = document.getElementById("taskNotionOpenPill");
+      if (openPill) {
+        openPill.addEventListener("click", () => {
+          if (currentTask.notionUrl) FocusFlowStorage.openExternalUrl(currentTask.notionUrl);
+        });
+      }
+
+      const linkBtn = document.getElementById("taskLinkNotionBtn");
+      const editNotionBtn = document.getElementById("taskNotionEditBtn");
+      const inputGroup = document.getElementById("taskNotionInputGroup");
+      const inlineInput = document.getElementById("taskNotionUrlInlineInput");
+      const inlineError = document.getElementById("taskNotionInlineError");
+
+      const showInlineNotion = () => {
+        if (!inputGroup) return;
+        const linkedState = DOM.taskCardContainer.querySelector(".notion-linked-state");
+        const unlinkedState = DOM.taskCardContainer.querySelector(".notion-unlinked-state");
+        if (linkedState) linkedState.hidden = true;
+        if (unlinkedState) unlinkedState.hidden = true;
+        inputGroup.hidden = false;
+        inlineInput.value = currentTask.notionUrl || "";
+        const tEl = document.getElementById("taskNotionInlineTitleInput");
+        const iEl = document.getElementById("taskNotionInlineIconInput");
+        const pEl = document.getElementById("taskNotionInlinePageIdInput");
+        if (tEl) tEl.value = currentTask.notionTitle || "";
+        if (iEl) iEl.value = currentTask.notionIcon || "";
+        if (pEl) pEl.value = currentTask.notionPageId || "";
+        if (inlineError) inlineError.hidden = true;
+        inlineInput.focus();
+        inlineInput.select();
+      };
+
+      if (linkBtn) linkBtn.addEventListener("click", showInlineNotion);
+      if (editNotionBtn) editNotionBtn.addEventListener("click", showInlineNotion);
+
+      if (inlineInput && typeof NotionUI !== "undefined" && typeof NotionUI.attachPagePicker === "function") {
+        NotionUI.attachPagePicker(inlineInput, {
+          onSelect: page => {
+            const tEl = document.getElementById("taskNotionInlineTitleInput");
+            const iEl = document.getElementById("taskNotionInlineIconInput");
+            const pEl = document.getElementById("taskNotionInlinePageIdInput");
+            if (tEl) tEl.value = page.title || "";
+            if (iEl) iEl.value = page.icon || "";
+            if (pEl) pEl.value = page.id || "";
+            if (inlineError) inlineError.hidden = true;
+          },
+          onClear: () => {
+            const tEl = document.getElementById("taskNotionInlineTitleInput");
+            const iEl = document.getElementById("taskNotionInlineIconInput");
+            const pEl = document.getElementById("taskNotionInlinePageIdInput");
+            if (tEl) tEl.value = "";
+            if (iEl) iEl.value = "";
+            if (pEl) pEl.value = "";
+          }
+        });
+      }
+
+      const cancelInlineBtn = document.getElementById("taskNotionInlineCancelBtn");
+      if (cancelInlineBtn) {
+        cancelInlineBtn.addEventListener("click", () => {
+          this.renderTaskCard();
+        });
+      }
+
+      const saveInlineBtn = document.getElementById("taskNotionInlineSaveBtn");
+      if (saveInlineBtn) {
+        saveInlineBtn.addEventListener("click", () => {
+          const rawUrl = inlineInput.value.trim();
+          if (!rawUrl) {
+            currentTask.notionUrl = null;
+            currentTask.notionTitle = null;
+            currentTask.notionIcon = null;
+            currentTask.notionPageId = null;
+            FocusFlowStorage.updateTask(currentTaskId, {
+              notionUrl: null,
+              notionTitle: null,
+              notionIcon: null,
+              notionPageId: null
+            });
+            this.renderTaskCard();
+            this.showToast("Notion page unlinked.", { duration: 2500 });
+            return;
+          }
+          if (!FocusFlowStorage.isValidNotionUrl(rawUrl)) {
+            if (inlineError) {
+              inlineError.textContent = "Please enter a valid Notion URL (https://... or notion://...)";
+              inlineError.hidden = false;
+            }
+            inlineInput.focus();
+            return;
+          }
+
+          const tEl = document.getElementById("taskNotionInlineTitleInput");
+          const iEl = document.getElementById("taskNotionInlineIconInput");
+          const pEl = document.getElementById("taskNotionInlinePageIdInput");
+          const rawTitle = tEl ? tEl.value.trim() : "";
+          const rawIcon = iEl ? iEl.value.trim() : "";
+          const rawPageId = pEl ? pEl.value.trim() : "";
+
+          currentTask.notionUrl = rawUrl;
+          currentTask.notionTitle = rawTitle || null;
+          currentTask.notionIcon = rawIcon || null;
+          currentTask.notionPageId = rawPageId || null;
+
+          FocusFlowStorage.updateTask(currentTaskId, {
+            notionUrl: rawUrl,
+            notionTitle: rawTitle || null,
+            notionIcon: rawIcon || null,
+            notionPageId: rawPageId || null
+          });
+          this.renderTaskCard();
+          this.showToast("Notion page linked.", { duration: 2500 });
+        });
+      }
+
+      if (inlineInput) {
+        inlineInput.addEventListener("keydown", e => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (saveInlineBtn) saveInlineBtn.click();
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            if (cancelInlineBtn) cancelInlineBtn.click();
+          }
+        });
+        inlineInput.addEventListener("input", () => {
+          if (inlineError) inlineError.hidden = true;
+        });
+      }
+
+      const unlinkBtn = document.getElementById("taskNotionUnlinkBtn");
+      if (unlinkBtn) {
+        unlinkBtn.addEventListener("click", () => {
+          currentTask.notionUrl = null;
+          currentTask.notionTitle = null;
+          currentTask.notionIcon = null;
+          currentTask.notionPageId = null;
+          FocusFlowStorage.updateTask(currentTaskId, {
+            notionUrl: null,
+            notionTitle: null,
+            notionIcon: null,
+            notionPageId: null
+          });
+          this.renderTaskCard();
+          this.showToast("Notion page unlinked.", { duration: 2500 });
+        });
+      }
 
       document.getElementById("cardCheckboxBtn").addEventListener("click", () => {
         currentTask.completed = !currentTask.completed;
@@ -561,7 +849,11 @@
         title: currentTask.title,
         completed: Boolean(currentTask.completed),
         priority: currentTask.priority,
-        dueDate: currentTask.dueDate || ""
+        dueDate: currentTask.dueDate || "",
+        notionUrl: currentTask.notionUrl || null,
+        notionTitle: currentTask.notionTitle || null,
+        notionIcon: currentTask.notionIcon || null,
+        notionPageId: currentTask.notionPageId || null
       });
     },
 

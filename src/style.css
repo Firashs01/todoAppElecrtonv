@@ -273,6 +273,61 @@ label:focus-visible {
   gap: var(--space-2);
 }
 
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 38px;
+  padding: var(--space-1) var(--space-3);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+  background-color: var(--bg-muted);
+  color: var(--text-main);
+  border-color: rgba(15, 23, 42, 0.15);
+}
+
+.nav-link.active,
+.btn-secondary.active {
+  background-color: var(--text-main);
+  color: var(--bg-surface);
+  border-color: var(--text-main);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.nav-link.active svg,
+.btn-secondary.active svg {
+  stroke: var(--bg-surface);
+}
+
+[data-theme="dark"] .nav-link:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="dark"] .nav-link.active,
+[data-theme="dark"] .btn-secondary.active {
+  background-color: var(--text-main);
+  color: var(--bg-surface);
+  border-color: var(--text-main);
+}
+
 /* --------------------------------------------------------------------------
    5. Buttons & Controls
    -------------------------------------------------------------------------- */
@@ -523,7 +578,8 @@ label:focus-visible {
 }
 
 .meta-select,
-.meta-date {
+.meta-date,
+.meta-input {
   min-height: 34px;
   padding: var(--space-1) var(--space-2);
   font-family: inherit;
@@ -533,13 +589,35 @@ label:focus-visible {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   outline: none;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .meta-select:focus,
-.meta-date:focus {
+.meta-date:focus,
+.meta-input:focus {
   border-color: var(--border-focus);
   background-color: var(--bg-surface);
+}
+
+.meta-field-notion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.meta-notion-input {
+  width: 210px;
+  max-width: 100%;
+}
+
+.meta-field-error,
+.inline-notion-error,
+.notion-validation-msg {
+  font-size: 0.75rem;
+  color: var(--color-urgent);
+  margin-top: var(--space-1);
+  display: block;
+  line-height: 1.35;
 }
 
 .keyboard-hint {
@@ -910,6 +988,54 @@ kbd {
   font-variant-numeric: tabular-nums;
 }
 
+/* Notion Icon & Badge Styles */
+.notion-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  fill: currentColor;
+}
+
+.badge-notion {
+  background-color: var(--bg-muted);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  user-select: none;
+  font-weight: 600;
+}
+
+.badge-notion:hover {
+  background-color: var(--bg-surface-elevated);
+  border-color: rgba(15, 23, 42, 0.25);
+  transform: translateY(-0.5px);
+}
+
+[data-theme="dark"] .badge-notion:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-notion-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-notion-icon:hover {
+  color: var(--text-main);
+  background-color: var(--bg-muted);
+  transform: translateY(-0.5px);
+}
+
 .task-actions {
   display: flex;
   align-items: center;
@@ -994,6 +1120,20 @@ kbd {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.inline-notion-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.edit-notion-input {
+  width: 170px;
+  min-height: 32px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
 }
 
 .inline-actions {
@@ -1751,6 +1891,84 @@ kbd {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+}
+
+/* Notion Linking Component in Note Editor & Task Notes Header */
+.notion-link-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.notion-unlinked-state {
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-notion-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.notion-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.notion-input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.inline-notion-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.notion-linked-state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.badge-notion-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-muted);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.badge-notion-pill:hover {
+  background-color: var(--bg-surface-elevated);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-sm);
+}
+
+.notion-linked-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .note-title-input {
@@ -2511,5 +2729,1107 @@ kbd {
 
   .today-metrics-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   17. Activity Calendar & Day Detail View Styles
+   -------------------------------------------------------------------------- */
+.calendar-main-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-16);
+}
+
+.calendar-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: 0 var(--space-1);
+}
+
+.calendar-view-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.calendar-view-subtitle {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.calendar-current-month-label {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-main);
+  min-width: 160px;
+  text-align: center;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Monthly Summary Strip */
+.calendar-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.calendar-summary-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.calendar-summary-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.calendar-summary-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.calendar-summary-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.calendar-summary-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* 7-Column Calendar Card & Grid */
+.calendar-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.calendar-weekdays-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.calendar-weekday-cell {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--space-1) 0;
+}
+
+.calendar-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-2);
+}
+
+.calendar-day-cell {
+  position: relative;
+  min-height: 96px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.calendar-day-cell:hover {
+  transform: translateY(-2px);
+  border-color: rgba(15, 23, 42, 0.2);
+  box-shadow: var(--shadow-md);
+  background-color: var(--bg-muted);
+  z-index: 2;
+}
+
+[data-theme="dark"] .calendar-day-cell:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.calendar-day-cell:active {
+  transform: scale(0.98);
+}
+
+.calendar-day-cell.is-other-month {
+  opacity: 0.38;
+  background-color: var(--bg-subtle);
+}
+
+.calendar-day-cell.is-today {
+  border: 2px solid var(--text-main);
+  box-shadow: var(--shadow-sm);
+}
+
+.calendar-day-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.calendar-day-number {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.calendar-today-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  background-color: var(--text-main);
+  color: var(--bg-surface);
+}
+
+.calendar-day-indicators {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.cal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal-pill svg {
+  flex-shrink: 0;
+}
+
+.cal-pill-time {
+  background-color: var(--color-low-subtle);
+  color: var(--color-low);
+  border: 1px solid var(--color-low-border);
+}
+
+.cal-badge-tasks {
+  background-color: var(--color-done-subtle);
+  color: var(--color-done);
+  border: 1px solid var(--color-done-border);
+}
+
+.cal-dot-notes {
+  background-color: var(--color-pending-subtle);
+  color: var(--color-pending);
+  border: 1px solid var(--color-pending-border);
+}
+
+/* Day Detail View Styles */
+.day-detail-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: 0 var(--space-1);
+}
+
+.day-detail-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.day-detail-date-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-main);
+}
+
+.day-detail-date-sub {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.day-detail-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.day-summary-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.day-summary-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.day-kpi-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.day-kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.day-kpi-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.day-kpi-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.day-section-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.day-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.day-section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.day-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.day-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  gap: var(--space-3);
+  transition: all var(--transition-fast);
+}
+
+.day-task-row:hover {
+  background-color: var(--bg-muted);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+.day-task-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 1;
+}
+
+.day-task-title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-main);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.day-task-title.is-completed {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.day-task-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.day-task-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.day-empty-state {
+  text-align: center;
+  padding: var(--space-6) var(--space-4);
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.day-empty-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-muted);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-1);
+}
+
+.day-empty-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.day-empty-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  max-width: 320px;
+}
+
+/* Quick Add Task Form */
+.quick-add-task-form {
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.quick-add-task-row {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.quick-add-task-input {
+  flex: 1;
+  min-width: 220px;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.quick-add-task-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.quick-add-task-select {
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+/* Quick Note Editor on Day Detail */
+.quick-note-box {
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.quick-note-title-input {
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.quick-note-title-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.quick-note-textarea {
+  min-height: 90px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.quick-note-textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.quick-note-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* Day Notes List */
+.day-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.day-note-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: all var(--transition-fast);
+}
+
+.day-note-card:hover {
+  border-color: rgba(15, 23, 42, 0.14);
+  box-shadow: var(--shadow-sm);
+}
+
+.day-note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.day-note-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.day-note-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.day-note-body {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.day-note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+/* --------------------------------------------------------------------------
+   14. Notion API Integration UI (Status Pill, Modal & Page Picker)
+   -------------------------------------------------------------------------- */
+
+/* Header Connection Pill */
+.btn-notion-status {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--transition-fast);
+}
+
+.notion-status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.notion-status-dot.connected {
+  background-color: var(--color-done);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.notion-status-dot.disconnected {
+  background-color: transparent;
+  border: 1.5px solid var(--text-muted);
+}
+
+.btn-notion-status.is-connected {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.btn-notion-status.is-connected:hover {
+  border-color: rgba(16, 185, 129, 0.5);
+  background-color: var(--bg-muted);
+}
+
+/* Notion Modal Dialog */
+.notion-modal {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+  max-width: 520px;
+  width: calc(100% - 32px);
+  padding: 0;
+  overflow: hidden;
+  margin: auto;
+}
+
+.notion-modal::backdrop {
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.notion-modal-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.notion-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-muted);
+}
+
+.notion-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.notion-modal-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
+  flex-shrink: 0;
+}
+
+.notion-modal-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.25;
+  margin: 0;
+}
+
+.notion-modal-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.notion-modal-body {
+  padding: var(--space-5) var(--space-6);
+}
+
+.notion-status-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.notion-connect-intro {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.notion-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.notion-status-pill.connected {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: var(--color-done);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.notion-status-pill .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.notion-workspace-info {
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.notion-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+}
+
+.notion-info-row .info-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.notion-info-row .info-value {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.notion-connected-guide {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  background-color: var(--bg-surface);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.notion-token-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.notion-token-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notion-secret-input {
+  width: 100%;
+  padding-right: 36px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+}
+
+.btn-toggle-eye {
+  position: absolute;
+  right: 6px;
+  padding: 4px;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-toggle-eye:hover {
+  color: var(--text-main);
+}
+
+.notion-instructions-box {
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.instructions-heading {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.instructions-list {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: 0.78125rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.instructions-list li a {
+  color: var(--color-done);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.notion-feedback-msg {
+  font-size: 0.8125rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  line-height: 1.4;
+}
+
+.notion-feedback-msg.error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-urgent);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.notion-feedback-msg.success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-done);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.notion-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.notion-modal-actions .actions-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+/* Notion Page Picker Dropdown */
+.notion-picker-container {
+  position: relative !important;
+}
+
+.notion-picker-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 280px;
+  max-width: 440px;
+  max-height: 280px;
+  overflow-y: auto;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  z-index: 1000;
+  padding: 4px 0;
+  font-size: 0.8125rem;
+}
+
+.notion-picker-header {
+  padding: 4px 12px 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.notion-picker-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.notion-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  user-select: none;
+}
+
+.notion-picker-item:hover,
+.notion-picker-item.is-selected {
+  background-color: var(--bg-muted);
+}
+
+.picker-item-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.picker-icon-emoji {
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.picker-icon-img {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.picker-icon-svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.picker-item-title {
+  color: var(--text-main);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picker-item-time {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.notion-picker-state-msg {
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.picker-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border-subtle);
+  border-top-color: var(--text-main);
+  border-radius: 50%;
+  animation: pickerSpin 0.7s linear infinite;
+}
+
+@keyframes pickerSpin {
+  to { transform: rotate(360deg); }
+}
+
+.notion-picker-prompt {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.prompt-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.prompt-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.prompt-connect-btn {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* Badge Title & Emoji */
+.notion-badge-emoji {
+  display: inline-block;
+  font-size: 0.875rem;
+  line-height: 1;
+  margin-right: 2px;
+}
+
+.notion-badge-img {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  object-fit: contain;
+  margin-right: 2px;
+}
+
+.badge-notion-title {
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+  .calendar-day-cell {
+    min-height: 72px;
+    padding: var(--space-1);
+  }
+
+  .calendar-current-month-label {
+    min-width: auto;
+    font-size: 0.9375rem;
+  }
+
+  .cal-pill {
+    font-size: 0.625rem;
+    padding: 1px 4px;
+  }
+
+  .calendar-summary-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .day-summary-kpis {
+    grid-template-columns: 1fr;
   }
 }

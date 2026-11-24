@@ -3,6 +3,21 @@
  * Used by both the main task list (app.js) and the notes editor (note.js).
  */
 
+function getLocalDateString(date = new Date()) {
+  const d = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date(date);
+  if (isNaN(d.getTime())) {
+    const fallback = new Date();
+    const y = fallback.getFullYear();
+    const m = String(fallback.getMonth() + 1).padStart(2, "0");
+    const day = String(fallback.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 const FocusFlowStorage = (() => {
   "use strict";
 
@@ -41,7 +56,8 @@ const FocusFlowStorage = (() => {
         }
       ],
       note: "",
-      noteUpdatedAt: null
+      noteUpdatedAt: null,
+      notionUrl: null
     },
     {
       id: "task-seed-2",
@@ -52,7 +68,8 @@ const FocusFlowStorage = (() => {
       createdAt: new Date().toISOString(),
       notes: [],
       note: "",
-      noteUpdatedAt: null
+      noteUpdatedAt: null,
+      notionUrl: null
     },
     {
       id: "task-seed-3",
@@ -60,18 +77,20 @@ const FocusFlowStorage = (() => {
       completed: true,
       priority: "low",
       dueDate: getRelativeDateString(-1),
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      completedAt: new Date(Date.now() - 86400000).toISOString(),
       notes: [
         {
           id: "note-3-1",
           content: "Tested on desktop Chrome and mobile Safari. Works smoothly.",
           completed: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+          updatedAt: new Date(Date.now() - 86400000).toISOString()
         }
       ],
       note: "",
-      noteUpdatedAt: null
+      noteUpdatedAt: null,
+      notionUrl: null
     }
   ];
 
@@ -91,6 +110,9 @@ const FocusFlowStorage = (() => {
     const priority = ["high", "medium", "low"].includes(raw.priority) ? raw.priority : "medium";
     const dueDate = typeof raw.dueDate === "string" ? raw.dueDate : "";
     const createdAt = typeof raw.createdAt === "string" ? raw.createdAt : new Date().toISOString();
+    const completedAt = typeof raw.completedAt === "string" && raw.completedAt
+      ? raw.completedAt
+      : (completed ? (raw.createdAt || new Date().toISOString()) : null);
 
     // Notes array normalization (backward compatible with single .note string)
     let notes = [];
@@ -115,6 +137,20 @@ const FocusFlowStorage = (() => {
     // Maintain computed .note for quick display checks
     const latestNote = notes.length > 0 ? notes[notes.length - 1].content : "";
 
+    // Notion page data normalization (backward compatible: defaults to null if missing)
+    const notionUrl = typeof raw.notionUrl === "string" && raw.notionUrl.trim() !== ""
+      ? raw.notionUrl.trim()
+      : null;
+    const notionTitle = typeof raw.notionTitle === "string" && raw.notionTitle.trim() !== ""
+      ? raw.notionTitle.trim()
+      : null;
+    const notionIcon = typeof raw.notionIcon === "string" && raw.notionIcon.trim() !== ""
+      ? raw.notionIcon.trim()
+      : null;
+    const notionPageId = typeof raw.notionPageId === "string" && raw.notionPageId.trim() !== ""
+      ? raw.notionPageId.trim()
+      : null;
+
     return {
       id,
       title,
@@ -122,9 +158,14 @@ const FocusFlowStorage = (() => {
       priority,
       dueDate,
       createdAt,
+      completedAt,
       notes,
       note: latestNote,
-      noteUpdatedAt: notes.length > 0 ? notes[notes.length - 1].updatedAt : null
+      noteUpdatedAt: notes.length > 0 ? notes[notes.length - 1].updatedAt : null,
+      notionUrl,
+      notionTitle,
+      notionIcon,
+      notionPageId
     };
   }
 
@@ -133,13 +174,6 @@ const FocusFlowStorage = (() => {
   // =========================================================================
   const NOTES_STORAGE_KEY = "focusflow_notes_v1";
   const STATS_STORAGE_KEY = "focusflow_stats_v1";
-
-  function getLocalDateString(date = new Date()) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
 
   function normalizeStats(raw, existingTasks = []) {
     const today = getLocalDateString();
@@ -224,16 +258,39 @@ const FocusFlowStorage = (() => {
       ? raw.id
       : "note_" + Date.now() + "_" + Math.random().toString(36).slice(2, 9);
 
+    const createdAt = typeof raw.createdAt === "string" ? raw.createdAt : new Date().toISOString();
+    const updatedAt = typeof raw.updatedAt === "string" ? raw.updatedAt : new Date().toISOString();
+    const date = typeof raw.date === "string" && raw.date ? raw.date : getLocalDateString(new Date(createdAt));
+
+    // Notion page data normalization (backward compatible: defaults to null if missing)
+    const notionUrl = typeof raw.notionUrl === "string" && raw.notionUrl.trim() !== ""
+      ? raw.notionUrl.trim()
+      : null;
+    const notionTitle = typeof raw.notionTitle === "string" && raw.notionTitle.trim() !== ""
+      ? raw.notionTitle.trim()
+      : null;
+    const notionIcon = typeof raw.notionIcon === "string" && raw.notionIcon.trim() !== ""
+      ? raw.notionIcon.trim()
+      : null;
+    const notionPageId = typeof raw.notionPageId === "string" && raw.notionPageId.trim() !== ""
+      ? raw.notionPageId.trim()
+      : null;
+
     return {
       id,
       title,
       body: typeof raw.body === "string" ? raw.body : "",
+      date,
       taggedTaskIds: Array.isArray(raw.taggedTaskIds)
         ? raw.taggedTaskIds.filter(tid => typeof tid === "string" && tid)
         : [],
       promotedTaskId: typeof raw.promotedTaskId === "string" ? raw.promotedTaskId : "",
-      createdAt: typeof raw.createdAt === "string" ? raw.createdAt : new Date().toISOString(),
-      updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : new Date().toISOString()
+      createdAt,
+      updatedAt,
+      notionUrl,
+      notionTitle,
+      notionIcon,
+      notionPageId
     };
   }
 
@@ -373,17 +430,22 @@ const FocusFlowStorage = (() => {
       return notes.find(n => n.id === id) || null;
     },
 
-    addNote(noteData) {
+    addNote(noteData = {}) {
       const notes = this.loadNotes();
       const now = new Date().toISOString();
       const newNote = normalizeNote({
         id: "note_" + Date.now() + "_" + Math.random().toString(36).slice(2, 9),
         title: noteData.title || "Untitled Note",
         body: noteData.body || "",
+        date: noteData.date || getLocalDateString(new Date(now)),
         taggedTaskIds: noteData.taggedTaskIds || [],
         promotedTaskId: "",
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        notionUrl: typeof noteData.notionUrl === "string" && noteData.notionUrl.trim() ? noteData.notionUrl.trim() : null,
+        notionTitle: typeof noteData.notionTitle === "string" && noteData.notionTitle.trim() ? noteData.notionTitle.trim() : null,
+        notionIcon: typeof noteData.notionIcon === "string" && noteData.notionIcon.trim() ? noteData.notionIcon.trim() : null,
+        notionPageId: typeof noteData.notionPageId === "string" && noteData.notionPageId.trim() ? noteData.notionPageId.trim() : null
       });
       if (!newNote) return null;
       notes.unshift(newNote);
@@ -696,63 +758,314 @@ const FocusFlowStorage = (() => {
           deletedPct
         }
       };
+    },
+
+    // =======================================================================
+    // Calendar & Activity Helpers
+    // =======================================================================
+    getUsageByDate() {
+      const stats = this.loadStats();
+      const usage = {};
+      if (stats && stats.days) {
+        for (const [k, v] of Object.entries(stats.days)) {
+          usage[k] = (v && typeof v.timeSeconds === "number") ? v.timeSeconds : 0;
+        }
+      }
+      return usage;
+    },
+
+    getTasksCompletedForDate(dateStr) {
+      if (!dateStr) return [];
+      const tasks = this.loadTasks();
+      return tasks.filter(t => {
+        if (!t.completed) return false;
+        if (t.completedAt) {
+          return getLocalDateString(t.completedAt) === dateStr;
+        }
+        if (t.dueDate === dateStr) return true;
+        return getLocalDateString(t.createdAt) === dateStr;
+      });
+    },
+
+    getNotesForDate(dateStr) {
+      if (!dateStr) return [];
+      const notes = this.loadNotes();
+      return notes.filter(n => {
+        if (n.date === dateStr) return true;
+        if (getLocalDateString(n.createdAt) === dateStr) return true;
+        if (getLocalDateString(n.updatedAt) === dateStr) return true;
+        return false;
+      });
+    },
+
+    getDayActivity(dateStr = getLocalDateString()) {
+      this.flushActiveTime();
+      const stats = this.loadStats();
+      const dayData = (stats && stats.days && stats.days[dateStr]) || { timeSeconds: 0, completed: 0, deleted: 0, created: 0 };
+      const completedTasks = this.getTasksCompletedForDate(dateStr);
+      const notes = this.getNotesForDate(dateStr);
+      return {
+        date: dateStr,
+        timeSeconds: dayData.timeSeconds || 0,
+        timeFormatted: this.formatDuration(dayData.timeSeconds || 0),
+        statsCompleted: dayData.completed || 0,
+        completedTasks,
+        notes
+      };
+    },
+
+    toggleTaskCompletion(id) {
+      const tasks = this.loadTasks();
+      const task = tasks.find(t => t.id === id);
+      if (!task) return null;
+      task.completed = !task.completed;
+      if (task.completed) {
+        task.completedAt = new Date().toISOString();
+        this.recordTaskCompleted();
+      } else {
+        task.completedAt = null;
+        this.recordTaskUncompleted();
+      }
+      this.saveTasks(tasks);
+      return task;
+    },
+
+    addTaskForDate(title, priority = "medium", dateStr = getLocalDateString(), markCompleted = false, notionUrl = null, notionTitle = null, notionIcon = null, notionPageId = null) {
+      const sanitized = typeof title === "string" ? title.trim() : "";
+      if (!sanitized) return null;
+      const tasks = this.loadTasks();
+      const now = new Date().toISOString();
+      const newTask = normalizeTask({
+        id: "task-" + (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)),
+        title: sanitized,
+        completed: Boolean(markCompleted),
+        priority: ["high", "medium", "low"].includes(priority) ? priority : "medium",
+        dueDate: dateStr,
+        createdAt: now,
+        completedAt: markCompleted ? now : null,
+        notes: [],
+        note: "",
+        noteUpdatedAt: null,
+        notionUrl: typeof notionUrl === "string" && notionUrl.trim() ? notionUrl.trim() : null,
+        notionTitle: typeof notionTitle === "string" && notionTitle.trim() ? notionTitle.trim() : null,
+        notionIcon: typeof notionIcon === "string" && notionIcon.trim() ? notionIcon.trim() : null,
+        notionPageId: typeof notionPageId === "string" && notionPageId.trim() ? notionPageId.trim() : null
+      });
+      tasks.unshift(newTask);
+      this.saveTasks(tasks);
+      this.recordTaskCreated();
+      if (markCompleted) {
+        this.recordTaskCompleted(dateStr);
+      }
+      return newTask;
+    },
+
+    addDailyNote(dateStr = getLocalDateString(), noteData = {}) {
+      const notes = this.loadNotes();
+      const now = new Date().toISOString();
+      const newNote = normalizeNote({
+        id: "note_" + Date.now() + "_" + Math.random().toString(36).slice(2, 9),
+        title: (noteData.title && noteData.title.trim()) || "Daily Note (" + dateStr + ")",
+        body: noteData.body || "",
+        date: dateStr,
+        taggedTaskIds: Array.isArray(noteData.taggedTaskIds) ? noteData.taggedTaskIds : [],
+        promotedTaskId: "",
+        createdAt: now,
+        updatedAt: now,
+        notionUrl: typeof noteData.notionUrl === "string" && noteData.notionUrl.trim() ? noteData.notionUrl.trim() : null,
+        notionTitle: typeof noteData.notionTitle === "string" && noteData.notionTitle.trim() ? noteData.notionTitle.trim() : null,
+        notionIcon: typeof noteData.notionIcon === "string" && noteData.notionIcon.trim() ? noteData.notionIcon.trim() : null,
+        notionPageId: typeof noteData.notionPageId === "string" && noteData.notionPageId.trim() ? noteData.notionPageId.trim() : null
+      });
+      if (!newNote) return null;
+      notes.unshift(newNote);
+      this.saveNotes(notes);
+      return newNote;
+    },
+
+    /**
+     * Validates if a string is an acceptable Notion page or deep link URL.
+     * Supports:
+     *   - https://app.notion.com/... (e.g., https://app.notion.com/p/...)
+     *   - https://notion.com/...
+     *   - https://*.notion.com/...
+     *   - https://www.notion.so/...
+     *   - https://notion.so/...
+     *   - https://*.notion.so/...
+     *   - https://*.notion.site/...
+     *   - https://notion.site/...
+     *   - notion://... (Desktop deep link protocol)
+     */
+    isValidNotionUrl(url) {
+      if (!url || typeof url !== "string") return false;
+      const trimmed = url.trim();
+      if (!trimmed) return false;
+      if (/^notion:\/\//i.test(trimmed)) {
+        return true;
+      }
+      try {
+        const parsed = new URL(trimmed);
+        if (parsed.protocol !== "https:") return false;
+        const host = parsed.hostname.toLowerCase();
+        return (
+          host === "notion.so" ||
+          host.endsWith(".notion.so") ||
+          host === "notion.site" ||
+          host.endsWith(".notion.site") ||
+          host === "notion.com" ||
+          host.endsWith(".notion.com")
+        );
+      } catch {
+        return false;
+      }
+    },
+
+    /**
+     * Extracts a clean, human-friendly page slug or title display from a Notion URL or title.
+     * e.g., https://www.notion.so/workspace/Design-System-1a2b3c4d... -> "Design System"
+     *       https://app.notion.com/p/Design-System-1a2b3c4d... -> "Design System"
+     */
+    formatNotionDisplay(url, customTitle) {
+      if (typeof customTitle === "string" && customTitle.trim()) {
+        const t = customTitle.trim();
+        return t.length > 24 ? t.slice(0, 22) + "…" : t;
+      }
+      if (!url || typeof url !== "string") return "Notion Page";
+      const trimmed = url.trim();
+      if (!trimmed) return "Notion Page";
+      try {
+        if (/^notion:\/\//i.test(trimmed)) {
+          return "Notion App";
+        }
+        const parsed = new URL(trimmed);
+        const segments = parsed.pathname.split("/").filter(Boolean);
+        if (segments.length > 0) {
+          let last = decodeURIComponent(segments[segments.length - 1]);
+          // Strip 32-character hexadecimal Notion ID at the end of slug if present (e.g. Page-Name-32hex)
+          last = last.replace(/-[0-9a-f]{32}$/i, "");
+          // Also strip UUID format with dashes at the end of slug if present (e.g. Page-Name-8-4-4-4-12)
+          last = last.replace(/-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "");
+
+          // If the segment is purely a 32-hex ID, UUID, or the route prefix like 'p', fallback to default
+          if (
+            /^[0-9a-f]{32}$/i.test(last) ||
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(last) ||
+            last.toLowerCase() === "p"
+          ) {
+            return "Notion Page";
+          }
+
+          last = last.replace(/-/g, " ").trim();
+          if (last && last.length > 1) {
+            return last.length > 24 ? last.slice(0, 22) + "…" : last;
+          }
+        }
+      } catch {}
+      return "Notion Page";
+    },
+
+    /**
+     * Safely opens an external Notion link or URL via Electron's shell.openExternal
+     * (using window.electronAPI or window.focusflowDesktop) with browser fallback.
+     */
+    openExternalUrl(url) {
+      if (!url || typeof url !== "string") return;
+      const trimmed = url.trim();
+      if (!trimmed) return;
+      if (typeof window !== "undefined") {
+        if (window.electronAPI && typeof window.electronAPI.openExternalUrl === "function") {
+          window.electronAPI.openExternalUrl(trimmed).catch(err => {
+            console.error("electronAPI.openExternalUrl failed:", err);
+          });
+          return;
+        }
+        if (window.focusflowDesktop && typeof window.focusflowDesktop.openExternalUrl === "function") {
+          window.focusflowDesktop.openExternalUrl(trimmed).catch(err => {
+            console.error("focusflowDesktop.openExternalUrl failed:", err);
+          });
+          return;
+        }
+        window.open(trimmed, "_blank", "noopener,noreferrer");
+      }
     }
   };
 })();
 
 // =========================================================================
-// Active App Time Tracking Engine
+// Continuous Background & Foreground App Time Tracking Engine
+// Tracks all time the Electron application is running ("online"),
+// including when minimized, unfocused, or running in the background.
+// Uses timestamp deltas (Date.now()) for 100% accurate time tracking.
 // =========================================================================
 let trackerRunning = false;
-let activeSecondsBuffer = 0;
-let lastTick = Date.now();
+let bufferedMs = 0;
+let lastTickTimestamp = Date.now();
+let lastDayString = getLocalDateString();
 
 function flushTimeBuffer() {
-  if (activeSecondsBuffer <= 0) return;
-  const toFlush = Math.floor(activeSecondsBuffer);
-  if (toFlush > 0 && typeof FocusFlowStorage !== "undefined") {
-    FocusFlowStorage.recordActiveTime(toFlush);
-    activeSecondsBuffer -= toFlush;
+  const now = Date.now();
+  const elapsedMs = Math.max(0, now - lastTickTimestamp);
+  lastTickTimestamp = now;
+  bufferedMs += elapsedMs;
+
+  const today = getLocalDateString(new Date(now));
+
+  // If day rolled over across midnight, flush to previous day first
+  if (today !== lastDayString) {
+    const secondsForPrevDay = Math.floor(bufferedMs / 1000);
+    if (secondsForPrevDay > 0 && typeof FocusFlowStorage !== "undefined") {
+      FocusFlowStorage.recordActiveTime(secondsForPrevDay, lastDayString);
+      bufferedMs -= secondsForPrevDay * 1000;
+    }
+    lastDayString = today;
+  }
+
+  const secondsToFlush = Math.floor(bufferedMs / 1000);
+  if (secondsToFlush > 0 && typeof FocusFlowStorage !== "undefined") {
+    FocusFlowStorage.recordActiveTime(secondsToFlush, today);
+    bufferedMs -= secondsToFlush * 1000;
   }
 }
 
 function initTimeTracker() {
   if (typeof window === "undefined" || trackerRunning) return;
   trackerRunning = true;
-  lastTick = Date.now();
+  lastTickTimestamp = Date.now();
+  lastDayString = getLocalDateString();
 
+  // Tick every 1000ms using Date.now() timestamp deltas
   setInterval(() => {
     const now = Date.now();
-    const delta = (now - lastTick) / 1000;
-    lastTick = now;
+    const elapsedMs = Math.max(0, now - lastTickTimestamp);
+    lastTickTimestamp = now;
+    bufferedMs += elapsedMs;
 
-    const isDocumentActive = (typeof document !== "undefined" && !document.hidden && document.hasFocus());
+    const today = getLocalDateString(new Date(now));
 
-    if (isDocumentActive && delta > 0 && delta < 5) {
-      activeSecondsBuffer += delta;
+    // Cross-midnight rollover safety: roll over into new day's bucket
+    if (today !== lastDayString) {
+      const secondsForPrevDay = Math.floor(bufferedMs / 1000);
+      if (secondsForPrevDay > 0 && typeof FocusFlowStorage !== "undefined") {
+        FocusFlowStorage.recordActiveTime(secondsForPrevDay, lastDayString);
+        bufferedMs -= secondsForPrevDay * 1000;
+      }
+      lastDayString = today;
     }
 
-    if (activeSecondsBuffer >= 5) {
-      flushTimeBuffer();
+    // Periodically persist to localStorage (every 10 seconds of accumulated time)
+    if (bufferedMs >= 10000) {
+      const secondsToFlush = Math.floor(bufferedMs / 1000);
+      if (secondsToFlush > 0 && typeof FocusFlowStorage !== "undefined") {
+        FocusFlowStorage.recordActiveTime(secondsToFlush, today);
+        bufferedMs -= secondsToFlush * 1000;
+      }
     }
   }, 1000);
 
-  const handleStateChange = () => {
-    const isDocumentActive = (typeof document !== "undefined" && !document.hidden && document.hasFocus());
-    if (!isDocumentActive) {
-      flushTimeBuffer();
-    }
-    lastTick = Date.now();
-  };
-
+  // Flush remaining time on page unload / navigation / Electron window close
   if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
-    window.addEventListener("focus", handleStateChange);
-    window.addEventListener("blur", handleStateChange);
     window.addEventListener("beforeunload", flushTimeBuffer);
     window.addEventListener("pagehide", flushTimeBuffer);
-  }
-  if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
-    document.addEventListener("visibilitychange", handleStateChange);
   }
 }
 
@@ -762,4 +1075,8 @@ if (typeof window !== "undefined") {
 
 if (typeof window !== "undefined") {
   window.FocusFlowStorage = FocusFlowStorage;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = FocusFlowStorage;
 }

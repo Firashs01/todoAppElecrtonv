@@ -36,7 +36,24 @@
     promoteNoteBtn: document.getElementById("promoteNoteBtn"),
     deleteNoteBtn: document.getElementById("deleteNoteBtn"),
     saveNoteBtn: document.getElementById("saveNoteBtn"),
-    toastContainer: document.getElementById("toastContainer")
+    toastContainer: document.getElementById("toastContainer"),
+
+    // Notion Linking elements
+    noteLinkNotionBtn: document.getElementById("noteLinkNotionBtn"),
+    noteNotionUnlinkedState: document.getElementById("noteNotionUnlinkedState"),
+    noteNotionLinkedState: document.getElementById("noteNotionLinkedState"),
+    noteNotionOpenPill: document.getElementById("noteNotionOpenPill"),
+    noteNotionPillText: document.getElementById("noteNotionPillText"),
+    noteNotionEditBtn: document.getElementById("noteNotionEditBtn"),
+    noteNotionUnlinkBtn: document.getElementById("noteNotionUnlinkBtn"),
+    noteNotionInputGroup: document.getElementById("noteNotionInputGroup"),
+    noteNotionUrlInput: document.getElementById("noteNotionUrlInput"),
+    noteNotionTitleInput: document.getElementById("noteNotionTitleInput"),
+    noteNotionIconInput: document.getElementById("noteNotionIconInput"),
+    noteNotionPageIdInput: document.getElementById("noteNotionPageIdInput"),
+    noteNotionSaveBtn: document.getElementById("noteNotionSaveBtn"),
+    noteNotionCancelBtn: document.getElementById("noteNotionCancelBtn"),
+    noteNotionValidationError: document.getElementById("noteNotionValidationError")
   };
 
   // ===========================================================================
@@ -45,6 +62,10 @@
   let searchQuery = "";
   let editingNoteId = null; // null = new note mode, string = editing existing
   let stagedTaggedTaskIds = [];
+  let stagedNotionUrl = null;
+  let stagedNotionTitle = null;
+  let stagedNotionIcon = null;
+  let stagedNotionPageId = null;
 
   // ===========================================================================
   // 3. Utilities
@@ -174,6 +195,30 @@
         promoBadgeHtml = `<span class="badge ${badgeClass}" title="Promoted task status">${escapeHTML(promoStatus.label)}</span>`;
       }
 
+      // Notion page badge
+      let notionBadgeHtml = "";
+      if (note.notionUrl && typeof note.notionUrl === "string" && note.notionUrl.trim()) {
+        if (typeof NotionUI !== "undefined" && typeof NotionUI.renderBadgeHtml === "function") {
+          notionBadgeHtml = NotionUI.renderBadgeHtml(note);
+        } else {
+          const displayTitle = note.notionTitle || FocusFlowStorage.formatNotionDisplay(note.notionUrl);
+          notionBadgeHtml = `
+            <button
+              type="button"
+              class="badge badge-notion action-open-notion"
+              data-notion-url="${escapeHTML(note.notionUrl)}"
+              title="Open in Notion: ${escapeHTML(displayTitle)}"
+              aria-label="Open linked Notion page"
+            >
+              <svg class="notion-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.69c-.466-.373-.84-.373-1.446-.326L3.62 2.39c-.466.047-.56.327-.373.513l1.212 1.305zm1.586 3.964v12.215c0 .793.42 1.072 1.259 1.025l13.448-.792c.793-.047.887-.606.887-1.166V6.958c0-.56-.467-.84-1.026-.793l-13.682.793c-.653.047-.886.42-.886 1.214zm11.754-.047c.14 0 .327.14.327.373v9.043c0 .56-.374.793-.84.84l-2.006.14c-.373.047-.466-.187-.466-.42v-6.39l-4.152 6.577c-.233.373-.513.513-.933.513h-.746c-.28 0-.466-.233-.466-.513V8.87c0-.513.373-.793.793-.84l2.1-.14c.373-.047.466.186.466.42v5.783l3.872-6.11c.233-.373.56-.513.886-.513l.167.047z"/>
+              </svg>
+              <span class="badge-notion-title">${escapeHTML(displayTitle)}</span>
+            </button>
+          `;
+        }
+      }
+
       // Tagged tasks pills
       let tagsPillsHtml = "";
       if (note.taggedTaskIds && note.taggedTaskIds.length > 0) {
@@ -189,6 +234,7 @@
       card.innerHTML = `
         <div class="note-card-top">
           <h3 class="note-card-title">${escapeHTML(note.title)}</h3>
+          ${notionBadgeHtml}
           ${promoBadgeHtml}
         </div>
         <p class="note-card-body-preview">${escapeHTML(truncate(note.body, 120))}</p>
@@ -287,6 +333,109 @@
     DOM.promoteNoteBtn.hidden = true;
   }
 
+  function updateNotionEditorUI() {
+    if (!DOM.noteNotionInputGroup) return;
+    DOM.noteNotionInputGroup.hidden = true;
+    if (DOM.noteNotionValidationError) {
+      DOM.noteNotionValidationError.hidden = true;
+    }
+
+    if (stagedNotionUrl) {
+      DOM.noteNotionUnlinkedState.hidden = true;
+      DOM.noteNotionLinkedState.hidden = false;
+      const displayTitle = stagedNotionTitle || FocusFlowStorage.formatNotionDisplay(stagedNotionUrl);
+      DOM.noteNotionPillText.textContent = displayTitle;
+      DOM.noteNotionOpenPill.title = `Open in Notion: ${displayTitle} (${stagedNotionUrl})`;
+    } else {
+      DOM.noteNotionUnlinkedState.hidden = false;
+      DOM.noteNotionLinkedState.hidden = true;
+      DOM.noteNotionUrlInput.value = "";
+      if (DOM.noteNotionTitleInput) DOM.noteNotionTitleInput.value = "";
+      if (DOM.noteNotionIconInput) DOM.noteNotionIconInput.value = "";
+      if (DOM.noteNotionPageIdInput) DOM.noteNotionPageIdInput.value = "";
+    }
+  }
+
+  function showNotionInputGroup() {
+    DOM.noteNotionUnlinkedState.hidden = true;
+    DOM.noteNotionLinkedState.hidden = true;
+    DOM.noteNotionInputGroup.hidden = false;
+    DOM.noteNotionUrlInput.value = stagedNotionUrl || "";
+    if (DOM.noteNotionTitleInput) DOM.noteNotionTitleInput.value = stagedNotionTitle || "";
+    if (DOM.noteNotionIconInput) DOM.noteNotionIconInput.value = stagedNotionIcon || "";
+    if (DOM.noteNotionPageIdInput) DOM.noteNotionPageIdInput.value = stagedNotionPageId || "";
+    if (DOM.noteNotionValidationError) DOM.noteNotionValidationError.hidden = true;
+    DOM.noteNotionUrlInput.focus();
+    DOM.noteNotionUrlInput.select();
+  }
+
+  function cancelNotionInput() {
+    DOM.noteNotionInputGroup.hidden = true;
+    if (DOM.noteNotionValidationError) DOM.noteNotionValidationError.hidden = true;
+    updateNotionEditorUI();
+  }
+
+  function saveNotionLink() {
+    const rawUrl = DOM.noteNotionUrlInput.value.trim();
+    if (!rawUrl) {
+      unlinkNotion();
+      return;
+    }
+
+    if (!FocusFlowStorage.isValidNotionUrl(rawUrl)) {
+      if (DOM.noteNotionValidationError) {
+        DOM.noteNotionValidationError.textContent = "Please enter a valid Notion URL (e.g. https://www.notion.so/..., https://app.notion.com/..., or notion://...)";
+        DOM.noteNotionValidationError.hidden = false;
+      }
+      DOM.noteNotionUrlInput.focus();
+      return;
+    }
+
+    stagedNotionUrl = rawUrl;
+    if (DOM.noteNotionTitleInput && DOM.noteNotionTitleInput.value.trim()) {
+      stagedNotionTitle = DOM.noteNotionTitleInput.value.trim();
+    }
+    if (DOM.noteNotionIconInput && DOM.noteNotionIconInput.value.trim()) {
+      stagedNotionIcon = DOM.noteNotionIconInput.value.trim();
+    }
+    if (DOM.noteNotionPageIdInput && DOM.noteNotionPageIdInput.value.trim()) {
+      stagedNotionPageId = DOM.noteNotionPageIdInput.value.trim();
+    }
+
+    if (editingNoteId) {
+      FocusFlowStorage.updateNote(editingNoteId, {
+        notionUrl: stagedNotionUrl,
+        notionTitle: stagedNotionTitle,
+        notionIcon: stagedNotionIcon,
+        notionPageId: stagedNotionPageId
+      });
+      renderNotesGrid();
+    }
+    showToast("Notion page linked.", { duration: 2500 });
+    updateNotionEditorUI();
+  }
+
+  function unlinkNotion() {
+    stagedNotionUrl = null;
+    stagedNotionTitle = null;
+    stagedNotionIcon = null;
+    stagedNotionPageId = null;
+    if (DOM.noteNotionTitleInput) DOM.noteNotionTitleInput.value = "";
+    if (DOM.noteNotionIconInput) DOM.noteNotionIconInput.value = "";
+    if (DOM.noteNotionPageIdInput) DOM.noteNotionPageIdInput.value = "";
+    if (editingNoteId) {
+      FocusFlowStorage.updateNote(editingNoteId, {
+        notionUrl: null,
+        notionTitle: null,
+        notionIcon: null,
+        notionPageId: null
+      });
+      renderNotesGrid();
+    }
+    showToast("Notion page unlinked.", { duration: 2500 });
+    updateNotionEditorUI();
+  }
+
   function openEditor(noteId) {
     editingNoteId = noteId;
     populateTaskTagDropdown();
@@ -301,6 +450,10 @@
       DOM.noteTitleInput.value = note.title;
       DOM.noteBodyInput.value = note.body;
       stagedTaggedTaskIds = [...(note.taggedTaskIds || [])];
+      stagedNotionUrl = note.notionUrl || null;
+      stagedNotionTitle = note.notionTitle || null;
+      stagedNotionIcon = note.notionIcon || null;
+      stagedNotionPageId = note.notionPageId || null;
       DOM.deleteNoteBtn.hidden = false;
       updatePromotionUI(note);
     } else {
@@ -308,11 +461,16 @@
       DOM.noteTitleInput.value = "";
       DOM.noteBodyInput.value = "";
       stagedTaggedTaskIds = [];
+      stagedNotionUrl = null;
+      stagedNotionTitle = null;
+      stagedNotionIcon = null;
+      stagedNotionPageId = null;
       DOM.deleteNoteBtn.hidden = true;
       DOM.promotionStatusSection.hidden = true;
       DOM.promoteNoteBtn.hidden = false;
     }
 
+    updateNotionEditorUI();
     renderTaggedTasks();
     DOM.noteEditorOverlay.hidden = false;
     DOM.noteTitleInput.focus();
@@ -322,6 +480,10 @@
     DOM.noteEditorOverlay.hidden = true;
     editingNoteId = null;
     stagedTaggedTaskIds = [];
+    stagedNotionUrl = null;
+    stagedNotionTitle = null;
+    stagedNotionIcon = null;
+    stagedNotionPageId = null;
   }
 
   function saveCurrentNote() {
@@ -336,7 +498,11 @@
     const updates = {
       title,
       body,
-      taggedTaskIds: [...stagedTaggedTaskIds]
+      taggedTaskIds: [...stagedTaggedTaskIds],
+      notionUrl: stagedNotionUrl,
+      notionTitle: stagedNotionTitle,
+      notionIcon: stagedNotionIcon,
+      notionPageId: stagedNotionPageId
     };
 
     if (editingNoteId) {
@@ -407,7 +573,11 @@
         updatedAt: new Date().toISOString()
       }] : [],
       note: body || "",
-      noteUpdatedAt: body ? new Date().toISOString() : null
+      noteUpdatedAt: body ? new Date().toISOString() : null,
+      notionUrl: (note && note.notionUrl) || stagedNotionUrl || null,
+      notionTitle: (note && note.notionTitle) || stagedNotionTitle || null,
+      notionIcon: (note && note.notionIcon) || stagedNotionIcon || null,
+      notionPageId: (note && note.notionPageId) || stagedNotionPageId || null
     });
 
     if (!newTask) {
@@ -524,7 +694,8 @@
         const newNote = FocusFlowStorage.addNote({
           title,
           body,
-          taggedTaskIds: [...stagedTaggedTaskIds]
+          taggedTaskIds: [...stagedTaggedTaskIds],
+          notionUrl: stagedNotionUrl
         });
         if (newNote) {
           promoteNote(newNote.id);
@@ -556,11 +727,103 @@
       renderTaggedTasks();
     });
 
+    // Notion Link handlers
+    if (DOM.noteLinkNotionBtn) {
+      DOM.noteLinkNotionBtn.addEventListener("click", () => {
+        showNotionInputGroup();
+      });
+    }
+
+    if (DOM.noteNotionEditBtn) {
+      DOM.noteNotionEditBtn.addEventListener("click", () => {
+        showNotionInputGroup();
+      });
+    }
+
+    if (DOM.noteNotionCancelBtn) {
+      DOM.noteNotionCancelBtn.addEventListener("click", () => {
+        cancelNotionInput();
+      });
+    }
+
+    if (DOM.noteNotionSaveBtn) {
+      DOM.noteNotionSaveBtn.addEventListener("click", () => {
+        saveNotionLink();
+      });
+    }
+
+    if (DOM.noteNotionUrlInput) {
+      if (typeof NotionUI !== "undefined" && typeof NotionUI.attachPagePicker === "function") {
+        NotionUI.attachPagePicker(DOM.noteNotionUrlInput, {
+          onSelect: page => {
+            stagedNotionUrl = page.url;
+            stagedNotionTitle = page.title;
+            stagedNotionIcon = page.icon;
+            stagedNotionPageId = page.id;
+            if (DOM.noteNotionTitleInput) DOM.noteNotionTitleInput.value = page.title || "";
+            if (DOM.noteNotionIconInput) DOM.noteNotionIconInput.value = page.icon || "";
+            if (DOM.noteNotionPageIdInput) DOM.noteNotionPageIdInput.value = page.id || "";
+            if (DOM.noteNotionValidationError) DOM.noteNotionValidationError.hidden = true;
+          },
+          onClear: () => {
+            stagedNotionUrl = null;
+            stagedNotionTitle = null;
+            stagedNotionIcon = null;
+            stagedNotionPageId = null;
+            if (DOM.noteNotionTitleInput) DOM.noteNotionTitleInput.value = "";
+            if (DOM.noteNotionIconInput) DOM.noteNotionIconInput.value = "";
+            if (DOM.noteNotionPageIdInput) DOM.noteNotionPageIdInput.value = "";
+          }
+        });
+      }
+
+      DOM.noteNotionUrlInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          saveNotionLink();
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          cancelNotionInput();
+        }
+      });
+      DOM.noteNotionUrlInput.addEventListener("input", () => {
+        if (DOM.noteNotionValidationError) {
+          DOM.noteNotionValidationError.hidden = true;
+        }
+      });
+    }
+
+    if (DOM.noteNotionUnlinkBtn) {
+      DOM.noteNotionUnlinkBtn.addEventListener("click", () => {
+        unlinkNotion();
+      });
+    }
+
+    if (DOM.noteNotionOpenPill) {
+      DOM.noteNotionOpenPill.addEventListener("click", () => {
+        if (stagedNotionUrl) {
+          FocusFlowStorage.openExternalUrl(stagedNotionUrl);
+        }
+      });
+    }
+
     // Grid: delegated events
     DOM.notesGrid.addEventListener("click", e => {
       const card = e.target.closest(".standalone-note-card");
       if (!card) return;
       const noteId = card.dataset.noteId;
+
+      // Notion link button clicked directly on note card
+      const notionBtn = e.target.closest(".action-open-notion");
+      if (notionBtn) {
+        e.stopPropagation();
+        e.preventDefault();
+        const url = notionBtn.dataset.notionUrl;
+        if (url) {
+          FocusFlowStorage.openExternalUrl(url);
+        }
+        return;
+      }
 
       // Edit button
       if (e.target.closest(".note-edit-btn")) {

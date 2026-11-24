@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="FocusFlow Activity Calendar & Day Detail View — visualize task completions, app usage time, and daily reflections.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'">
+  <title>Activity Calendar — FocusFlow</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-inner container">
+      <div class="brand">
+        <a href="stats.html" class="brand-link" title="FocusFlow Home (Stats)">
+          <div class="brand-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 11 12 14 22 4"></polyline>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1 class="brand-title">FocusFlow</h1>
+            <span class="brand-subtitle">Activity Calendar</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Main Navigation Menu (Stats -> Tasks -> Calendar -> Notes) -->
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="stats.html" class="nav-link btn-secondary btn-compact" id="navStatsBtn" title="Productivity statistics & time tracking">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span class="btn-text">Stats</span>
+        </a>
+
+        <a href="index.html" class="nav-link btn-secondary btn-compact" id="navTasksBtn" title="Task manager workspace">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          <span class="btn-text">Tasks</span>
+        </a>
+
+        <a href="calendar.html" class="nav-link btn-secondary btn-compact active" id="navCalendarBtn" title="Interactive Activity Calendar" aria-current="page">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span class="btn-text">Calendar</span>
+        </a>
+
+        <a href="notes.html" class="nav-link btn-secondary btn-compact" id="navNotesBtn" title="Notes workspace">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          <span class="btn-text">Notes</span>
+        </a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="notionConnectBtn" class="btn-secondary btn-compact btn-notion-status" title="Notion Integration Settings" type="button">
+          <svg class="notion-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.69c-.466-.373-.84-.373-1.446-.326L3.62 2.39c-.466.047-.56.327-.373.513l1.212 1.305zm1.586 3.964v12.215c0 .793.42 1.072 1.259 1.025l13.448-.792c.793-.047.887-.606.887-1.166V6.958c0-.56-.467-.84-1.026-.793l-13.682.793c-.653.047-.886.42-.886 1.214zm11.754-.047c.14 0 .327.14.327.373v9.043c0 .56-.374.793-.84.84l-2.006.14c-.373.047-.466-.187-.466-.42v-6.39l-4.152 6.577c-.233.373-.513.513-.933.513h-.746c-.28 0-.466-.233-.466-.513V8.87c0-.513.373-.793.793-.84l2.1-.14c.373-.047.466.186.466.42v5.783l3.872-6.11c.233-.373.56-.513.886-.513l.167.047z"/>
+          </svg>
+          <span class="notion-status-dot disconnected" id="notionHeaderStatusDot"></span>
+          <span class="btn-text" id="notionHeaderStatusText">Notion</span>
+        </button>
+
+        <button id="themeToggleBtn" class="btn-icon" aria-label="Toggle dark mode" title="Toggle theme (Light / Dark)">
+          <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="container calendar-main-layout">
+    <!-- VIEW A: Monthly Calendar Grid -->
+    <section id="calendarMonthView" class="calendar-view-container" aria-label="Monthly Activity Calendar">
+      <div class="calendar-header-bar">
+        <div>
+          <h2 class="calendar-view-title">Activity Calendar</h2>
+          <p class="calendar-view-subtitle">Review daily focus momentum, completed tasks, and reflections.</p>
+        </div>
+        <div class="calendar-controls">
+          <button type="button" id="prevMonthBtn" class="btn-secondary btn-compact" title="Previous month" aria-label="Previous month">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button type="button" id="todayMonthBtn" class="btn-secondary btn-compact" title="Jump to today">Today</button>
+          <button type="button" id="nextMonthBtn" class="btn-secondary btn-compact" title="Next month" aria-label="Next month">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+          <span class="calendar-current-month-label" id="currentMonthLabel">November 2026</span>
+        </div>
+      </div>
+
+      <!-- Month Summary Cards -->
+      <div class="calendar-summary-strip" aria-label="Month productivity summary">
+        <div class="calendar-summary-card">
+          <div class="calendar-summary-icon" style="background-color: var(--color-low-subtle); color: var(--color-low);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div>
+            <div class="calendar-summary-value" id="monthFocusTime">0m</div>
+            <div class="calendar-summary-label">Month Focus Time</div>
+          </div>
+        </div>
+
+        <div class="calendar-summary-card">
+          <div class="calendar-summary-icon" style="background-color: var(--color-done-subtle); color: var(--color-done);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <div>
+            <div class="calendar-summary-value" id="monthCompletedTasks">0</div>
+            <div class="calendar-summary-label">Tasks Completed</div>
+          </div>
+        </div>
+
+        <div class="calendar-summary-card">
+          <div class="calendar-summary-icon" style="background-color: var(--color-pending-subtle); color: var(--color-pending);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+          </div>
+          <div>
+            <div class="calendar-summary-value" id="monthNotesCount">0</div>
+            <div class="calendar-summary-label">Notes &amp; Reflections</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7-Column Monthly Grid -->
+      <div class="calendar-card">
+        <!-- Weekday Labels -->
+        <div class="calendar-weekdays-row" aria-hidden="true">
+          <div class="calendar-weekday-cell">Sun</div>
+          <div class="calendar-weekday-cell">Mon</div>
+          <div class="calendar-weekday-cell">Tue</div>
+          <div class="calendar-weekday-cell">Wed</div>
+          <div class="calendar-weekday-cell">Thu</div>
+          <div class="calendar-weekday-cell">Fri</div>
+          <div class="calendar-weekday-cell">Sat</div>
+        </div>
+
+        <!-- 7-Column Grid of Day Cells -->
+        <div class="calendar-days-grid" id="calendarDaysGrid" role="grid" aria-label="Month Calendar">
+          <!-- Populated dynamically by calendar.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW B: Dedicated Day Detail View (Triggered on Day Click) -->
+    <section id="calendarDayView" class="calendar-view-container" aria-label="Day Detail View" hidden>
+      <!-- Day Detail Navigation Bar -->
+      <div class="day-detail-header-bar">
+        <button type="button" id="backToCalendarBtn" class="btn-secondary btn-compact" title="Return to calendar view">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back to Calendar</span>
+        </button>
+
+        <div class="day-detail-nav-actions">
+          <button type="button" id="prevDayBtn" class="btn-secondary btn-compact" title="Previous day">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Previous</span>
+          </button>
+          <button type="button" id="todayJumpBtn" class="btn-secondary btn-compact" title="Jump to today">Today</button>
+          <button type="button" id="nextDayBtn" class="btn-secondary btn-compact" title="Next day">
+            <span>Next</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="day-detail-sections">
+        <!-- 1. Daily Summary Header & Time-in-App Card -->
+        <div class="day-summary-card">
+          <div>
+            <h2 class="day-detail-date-title" id="dayDetailTitle">Monday, November 16, 2026</h2>
+            <p class="day-detail-date-sub" id="dayDetailSubtitle">Daily activity &amp; productivity breakdown</p>
+          </div>
+
+          <div class="day-summary-kpis">
+            <div class="day-kpi-item">
+              <div class="day-kpi-icon" style="background-color: var(--color-low-subtle); color: var(--color-low);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <div>
+                <div class="day-kpi-value" id="dayTimeInApp">0m</div>
+                <div class="day-kpi-label">Time in App</div>
+              </div>
+            </div>
+
+            <div class="day-kpi-item">
+              <div class="day-kpi-icon" style="background-color: var(--color-done-subtle); color: var(--color-done);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 11 12 14 22 4"></polyline>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="day-kpi-value" id="dayTasksCompletedCount">0</div>
+                <div class="day-kpi-label">Tasks Completed</div>
+              </div>
+            </div>
+
+            <div class="day-kpi-item">
+              <div class="day-kpi-icon" style="background-color: var(--color-pending-subtle); color: var(--color-pending);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+              </div>
+              <div>
+                <div class="day-kpi-value" id="dayNotesCount">0</div>
+                <div class="day-kpi-label">Notes Logged</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Tasks Completed on This Day Section -->
+        <div class="day-section-card">
+          <div class="day-section-header">
+            <h3 class="day-section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+              <span>Tasks Completed on This Day</span>
+              <span class="counter-badge" id="dayCompletedTasksBadge">0</span>
+            </h3>
+
+            <div style="display: flex; align-items: center; gap: var(--space-2);">
+              <button type="button" id="toggleAddTaskBtn" class="btn-secondary btn-compact" title="Add a task for this date">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Add Task for This Date</span>
+              </button>
+              <a href="index.html" class="btn-secondary btn-compact" title="Jump to Tasks view to manage all items">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 11 12 14 22 4"></polyline>
+                </svg>
+                <span>Open in Tasks View</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Quick Add Task Form for this date (collapsible) -->
+          <form id="quickAddTaskForm" class="quick-add-task-form" hidden>
+            <div class="quick-add-task-row">
+              <input type="text" id="quickTaskTitleInput" class="quick-add-task-input" placeholder="Task title for this date..." autocomplete="off">
+              <select id="quickTaskPrioritySelect" class="quick-add-task-select" aria-label="Task priority">
+                <option value="medium">Medium Priority</option>
+                <option value="high">High Priority</option>
+                <option value="low">Low Priority</option>
+              </select>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; font-weight: 500; cursor: pointer;">
+                <input type="checkbox" id="quickTaskMarkCompleted" checked>
+                <span>Mark completed for this day</span>
+              </label>
+              <button type="submit" class="btn-primary btn-compact">Add Task</button>
+              <button type="button" id="cancelQuickTaskBtn" class="btn-secondary btn-compact">Cancel</button>
+            </div>
+          </form>
+
+          <!-- List of Tasks Completed on this Date -->
+          <div class="day-tasks-list" id="dayTasksList">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Empty State when no tasks completed -->
+          <div class="day-empty-state" id="dayTasksEmptyState">
+            <div class="day-empty-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <div class="day-empty-title">No tasks completed on this day</div>
+            <div class="day-empty-desc">Completed tasks recorded for this date will appear here. You can add completed tasks or jump to the Tasks view.</div>
+          </div>
+        </div>
+
+        <!-- 3. Daily Notes & Reflections Section -->
+        <div class="day-section-card">
+          <div class="day-section-header">
+            <h3 class="day-section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              <span>Daily Notes &amp; Reflections</span>
+              <span class="counter-badge" id="dayNotesCountBadge">0</span>
+            </h3>
+          </div>
+
+          <!-- Integrated Quick Daily Note Editor -->
+          <div class="quick-note-box">
+            <input type="text" id="quickNoteTitleInput" class="quick-note-title-input" placeholder="Daily note title or reflection topic..." autocomplete="off">
+            <textarea id="quickNoteBodyInput" class="quick-note-textarea" placeholder="Write your reflections, observations, or daily notes for this date..."></textarea>
+            <div class="quick-note-footer">
+              <button type="button" id="saveQuickNoteBtn" class="btn-primary btn-compact">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span>Save Daily Note</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Existing Daily Notes List -->
+          <div class="day-notes-list" id="dayNotesList">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Empty State for Notes -->
+          <div class="day-empty-state" id="dayNotesEmptyState">
+            <div class="day-empty-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+            </div>
+            <div class="day-empty-title">No notes recorded for this date</div>
+            <div class="day-empty-desc">Capture your thoughts, daily standup, or reflections using the editor above.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Shared Storage & Calendar Logic -->
+  <script src="storage.js"></script>
+  <script src="notion-ui.js"></script>
+  <script src="calendar.js"></script>
+</body>
+</html>

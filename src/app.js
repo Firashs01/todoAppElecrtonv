@@ -86,9 +86,13 @@
       };
     },
 
-    addTask(title, priority = "medium", dueDate = "") {
+    addTask(title, priority = "medium", dueDate = "", notionUrl = null, notionTitle = null, notionIcon = null, notionPageId = null) {
       const sanitizedTitle = title.trim();
       if (!sanitizedTitle) return null;
+      const cleanNotion = typeof notionUrl === "string" && notionUrl.trim() !== "" ? notionUrl.trim() : null;
+      const cleanTitle = typeof notionTitle === "string" && notionTitle.trim() !== "" ? notionTitle.trim() : null;
+      const cleanIcon = typeof notionIcon === "string" && notionIcon.trim() !== "" ? notionIcon.trim() : null;
+      const cleanPageId = typeof notionPageId === "string" && notionPageId.trim() !== "" ? notionPageId.trim() : null;
 
       const newTask = {
         id: "task-" + (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)),
@@ -99,7 +103,11 @@
         createdAt: new Date().toISOString(),
         notes: [],
         note: "",
-        noteUpdatedAt: null
+        noteUpdatedAt: null,
+        notionUrl: cleanNotion,
+        notionTitle: cleanTitle,
+        notionIcon: cleanIcon,
+        notionPageId: cleanPageId
       };
 
       // Add to beginning of array
@@ -125,12 +133,14 @@
       const task = this.tasks.find(t => t.id === id);
       if (!task) return;
       task.completed = !task.completed;
-      FocusFlowStorage.saveTasks(this.tasks);
       if (task.completed) {
+        task.completedAt = new Date().toISOString();
         FocusFlowStorage.recordTaskCompleted();
       } else {
+        task.completedAt = null;
         FocusFlowStorage.recordTaskUncompleted();
       }
+      FocusFlowStorage.saveTasks(this.tasks);
     },
 
     deleteTask(id) {
@@ -224,6 +234,11 @@
     taskTitleInput: document.getElementById("taskTitleInput"),
     taskPrioritySelect: document.getElementById("taskPrioritySelect"),
     taskDueDateInput: document.getElementById("taskDueDateInput"),
+    taskNotionUrlInput: document.getElementById("taskNotionUrlInput"),
+    taskNotionTitleInput: document.getElementById("taskNotionTitleInput"),
+    taskNotionIconInput: document.getElementById("taskNotionIconInput"),
+    taskNotionPageIdInput: document.getElementById("taskNotionPageIdInput"),
+    taskNotionUrlError: document.getElementById("taskNotionUrlError"),
 
     searchInput: document.getElementById("searchInput"),
     clearSearchBtn: document.getElementById("clearSearchBtn"),
@@ -389,14 +404,51 @@
                   value="${task.dueDate || ""}"
                   aria-label="Edit due date"
                 >
+                <div class="inline-notion-field">
+                  <svg class="notion-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.69c-.466-.373-.84-.373-1.446-.326L3.62 2.39c-.466.047-.56.327-.373.513l1.212 1.305zm1.586 3.964v12.215c0 .793.42 1.072 1.259 1.025l13.448-.792c.793-.047.887-.606.887-1.166V6.958c0-.56-.467-.84-1.026-.793l-13.682.793c-.653.047-.886.42-.886 1.214zm11.754-.047c.14 0 .327.14.327.373v9.043c0 .56-.374.793-.84.84l-2.006.14c-.373.047-.466-.187-.466-.42v-6.39l-4.152 6.577c-.233.373-.513.513-.933.513h-.746c-.28 0-.466-.233-.466-.513V8.87c0-.513.373-.793.793-.84l2.1-.14c.373-.047.466.186.466.42v5.783l3.872-6.11c.233-.373.56-.513.886-.513l.167.047z"/>
+                  </svg>
+                  <input
+                    type="text"
+                    class="meta-input edit-notion-input"
+                    value="${this.escapeHTML(task.notionUrl || "")}"
+                    placeholder="Search Notion or paste link..."
+                    aria-label="Edit Notion link"
+                    autocomplete="off"
+                  >
+                  <input type="hidden" class="edit-notion-title" value="${this.escapeHTML(task.notionTitle || "")}">
+                  <input type="hidden" class="edit-notion-icon" value="${this.escapeHTML(task.notionIcon || "")}">
+                  <input type="hidden" class="edit-notion-page-id" value="${this.escapeHTML(task.notionPageId || "")}">
+                </div>
               </div>
               <div class="inline-actions">
                 <button type="button" class="btn-edit-cancel">Cancel</button>
                 <button type="submit" class="btn-edit-save">Save</button>
               </div>
             </div>
+            <div class="inline-notion-error" hidden></div>
           </form>
         `;
+
+        const editNotionInput = li.querySelector(".edit-notion-input");
+        const editNotionTitle = li.querySelector(".edit-notion-title");
+        const editNotionIcon = li.querySelector(".edit-notion-icon");
+        const editNotionPageId = li.querySelector(".edit-notion-page-id");
+        if (editNotionInput && typeof NotionUI !== "undefined" && typeof NotionUI.attachPagePicker === "function") {
+          NotionUI.attachPagePicker(editNotionInput, {
+            onSelect: page => {
+              if (editNotionTitle) editNotionTitle.value = page.title || "";
+              if (editNotionIcon) editNotionIcon.value = page.icon || "";
+              if (editNotionPageId) editNotionPageId.value = page.id || "";
+            },
+            onClear: () => {
+              if (editNotionTitle) editNotionTitle.value = "";
+              if (editNotionIcon) editNotionIcon.value = "";
+              if (editNotionPageId) editNotionPageId.value = "";
+            }
+          });
+        }
+
         return li;
       }
 
@@ -444,6 +496,28 @@
       const priorityBadgeClass = `badge-priority-${task.priority}`;
       const priorityLabel = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
 
+      const hasNotion = Boolean(task.notionUrl && typeof task.notionUrl === "string" && task.notionUrl.trim() !== "");
+      let notionBadgeHtml = "";
+      if (hasNotion) {
+        if (typeof NotionUI !== "undefined" && typeof NotionUI.renderBadgeHtml === "function") {
+          notionBadgeHtml = NotionUI.renderBadgeHtml(task);
+        } else {
+          const displayTitle = task.notionTitle || FocusFlowStorage.formatNotionDisplay(task.notionUrl);
+          notionBadgeHtml = `<button
+            type="button"
+            class="badge badge-notion action-open-notion"
+            data-notion-url="${this.escapeHTML(task.notionUrl)}"
+            title="Open in Notion: ${this.escapeHTML(displayTitle)}"
+            aria-label="Open in Notion"
+          >
+            <svg class="notion-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.69c-.466-.373-.84-.373-1.446-.326L3.62 2.39c-.466.047-.56.327-.373.513l1.212 1.305zm1.586 3.964v12.215c0 .793.42 1.072 1.259 1.025l13.448-.792c.793-.047.887-.606.887-1.166V6.958c0-.56-.467-.84-1.026-.793l-13.682.793c-.653.047-.886.42-.886 1.214zm11.754-.047c.14 0 .327.14.327.373v9.043c0 .56-.374.793-.84.84l-2.006.14c-.373.047-.466-.187-.466-.42v-6.39l-4.152 6.577c-.233.373-.513.513-.933.513h-.746c-.28 0-.466-.233-.466-.513V8.87c0-.513.373-.793.793-.84l2.1-.14c.373-.047.466.186.466.42v5.783l3.872-6.11c.233-.373.56-.513.886-.513l.167.047z"/>
+            </svg>
+            <span class="badge-notion-title">${this.escapeHTML(displayTitle)}</span>
+          </button>`;
+        }
+      }
+
       li.innerHTML = `
         <div class="drag-handle" title="Drag to reorder" aria-hidden="true">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -478,6 +552,7 @@
             </span>
             ${dueBadgeHtml}
             ${noteBadgeHtml}
+            ${notionBadgeHtml}
           </div>
         </div>
 
@@ -661,19 +736,72 @@
     },
 
     bindFormEvents() {
+      if (DOM.taskNotionUrlInput) {
+        DOM.taskNotionUrlInput.addEventListener("input", () => {
+          if (DOM.taskNotionUrlError) {
+            DOM.taskNotionUrlError.hidden = true;
+          }
+        });
+
+        if (typeof NotionUI !== "undefined" && typeof NotionUI.attachPagePicker === "function") {
+          NotionUI.attachPagePicker(DOM.taskNotionUrlInput, {
+            onSelect: page => {
+              if (DOM.taskNotionTitleInput) DOM.taskNotionTitleInput.value = page.title || "";
+              if (DOM.taskNotionIconInput) DOM.taskNotionIconInput.value = page.icon || "";
+              if (DOM.taskNotionPageIdInput) DOM.taskNotionPageIdInput.value = page.id || "";
+              if (DOM.taskNotionUrlError) DOM.taskNotionUrlError.hidden = true;
+            },
+            onClear: () => {
+              if (DOM.taskNotionTitleInput) DOM.taskNotionTitleInput.value = "";
+              if (DOM.taskNotionIconInput) DOM.taskNotionIconInput.value = "";
+              if (DOM.taskNotionPageIdInput) DOM.taskNotionPageIdInput.value = "";
+            }
+          });
+        }
+      }
+
       DOM.taskForm.addEventListener("submit", e => {
         e.preventDefault();
         const title = DOM.taskTitleInput.value.trim();
         const priority = DOM.taskPrioritySelect.value;
         const dueDate = DOM.taskDueDateInput.value;
+        const rawNotion = DOM.taskNotionUrlInput ? DOM.taskNotionUrlInput.value.trim() : "";
+        const rawNotionTitle = DOM.taskNotionTitleInput ? DOM.taskNotionTitleInput.value.trim() : "";
+        const rawNotionIcon = DOM.taskNotionIconInput ? DOM.taskNotionIconInput.value.trim() : "";
+        const rawNotionPageId = DOM.taskNotionPageIdInput ? DOM.taskNotionPageIdInput.value.trim() : "";
 
         if (!title) return;
 
-        const created = State.addTask(title, priority, dueDate);
+        if (rawNotion && !FocusFlowStorage.isValidNotionUrl(rawNotion)) {
+          if (DOM.taskNotionUrlError) {
+            DOM.taskNotionUrlError.textContent = "Please enter a valid Notion URL (e.g. https://www.notion.so/..., https://app.notion.com/..., or notion://...)";
+            DOM.taskNotionUrlError.hidden = false;
+          }
+          DOM.taskNotionUrlInput.focus();
+          return;
+        }
+
+        if (DOM.taskNotionUrlError) {
+          DOM.taskNotionUrlError.hidden = true;
+        }
+
+        const created = State.addTask(
+          title,
+          priority,
+          dueDate,
+          rawNotion || null,
+          rawNotionTitle || null,
+          rawNotionIcon || null,
+          rawNotionPageId || null
+        );
         if (created) {
           DOM.taskTitleInput.value = "";
           DOM.taskPrioritySelect.value = "medium";
           DOM.taskDueDateInput.value = "";
+          if (DOM.taskNotionUrlInput) DOM.taskNotionUrlInput.value = "";
+          if (DOM.taskNotionTitleInput) DOM.taskNotionTitleInput.value = "";
+          if (DOM.taskNotionIconInput) DOM.taskNotionIconInput.value = "";
+          if (DOM.taskNotionPageIdInput) DOM.taskNotionPageIdInput.value = "";
           UIRenderer.renderTaskList();
           DOM.taskTitleInput.focus();
         }
@@ -769,6 +897,18 @@
         if (!card) return;
         const taskId = card.dataset.id;
 
+        // Notion icon badge clicked: open Notion page externally immediately without bubbling
+        const notionBtn = e.target.closest(".action-open-notion");
+        if (notionBtn) {
+          e.stopPropagation();
+          e.preventDefault();
+          const url = notionBtn.dataset.notionUrl;
+          if (url) {
+            FocusFlowStorage.openExternalUrl(url);
+          }
+          return;
+        }
+
         // Notes button clicked
         const noteBtn = e.target.closest(".action-note");
         if (noteBtn) {
@@ -829,6 +969,7 @@
       });
 
       DOM.taskList.addEventListener("dblclick", e => {
+        if (e.target.closest(".action-open-notion")) return;
         const taskBody = e.target.closest(".task-body");
         if (!taskBody) return;
         const card = taskBody.closest(".task-card");
@@ -848,14 +989,38 @@
         const input = editForm.querySelector(".inline-edit-input");
         const prioritySelect = editForm.querySelector(".edit-priority-select");
         const dueInput = editForm.querySelector(".edit-due-input");
+        const notionInput = editForm.querySelector(".edit-notion-input");
 
         const newTitle = input.value.trim();
         if (!newTitle) return;
 
+        const rawNotion = notionInput ? notionInput.value.trim() : "";
+        if (rawNotion && !FocusFlowStorage.isValidNotionUrl(rawNotion)) {
+          const errEl = editForm.querySelector(".inline-notion-error");
+          if (errEl) {
+            errEl.textContent = "Please enter a valid Notion URL (https://... or notion://...)";
+            errEl.hidden = false;
+          }
+          notionInput.focus();
+          return;
+        }
+
+        const notionTitleInput = editForm.querySelector(".edit-notion-title");
+        const notionIconInput = editForm.querySelector(".edit-notion-icon");
+        const notionPageIdInput = editForm.querySelector(".edit-notion-page-id");
+
+        const rawNotionTitle = notionTitleInput ? notionTitleInput.value.trim() : "";
+        const rawNotionIcon = notionIconInput ? notionIconInput.value.trim() : "";
+        const rawNotionPageId = notionPageIdInput ? notionPageIdInput.value.trim() : "";
+
         State.updateTask(taskId, {
           title: newTitle,
           priority: prioritySelect.value,
-          dueDate: dueInput.value
+          dueDate: dueInput.value,
+          notionUrl: rawNotion || null,
+          notionTitle: rawNotion ? (rawNotionTitle || null) : null,
+          notionIcon: rawNotion ? (rawNotionIcon || null) : null,
+          notionPageId: rawNotion ? (rawNotionPageId || null) : null
         });
 
         State.editingTaskId = null;

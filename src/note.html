@@ -13,7 +13,7 @@
   <header class="app-header">
     <div class="header-inner container">
       <div class="brand">
-        <a href="index.html" class="brand-link" title="Return to tasks">
+        <a href="stats.html" class="brand-link" title="FocusFlow Home (Stats)">
           <div class="brand-icon" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="9 11 12 14 22 4"></polyline>
@@ -22,12 +22,20 @@
           </div>
           <div class="brand-text">
             <h1 class="brand-title">FocusFlow</h1>
-            <span class="brand-subtitle">Task Notes & Cards</span>
+            <span class="brand-subtitle">Task Notes &amp; Cards</span>
           </div>
         </a>
       </div>
 
       <div class="header-actions">
+        <button id="notionConnectBtn" class="btn-secondary btn-compact btn-notion-status" title="Notion Integration Settings" type="button">
+          <svg class="notion-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.69c-.466-.373-.84-.373-1.446-.326L3.62 2.39c-.466.047-.56.327-.373.513l1.212 1.305zm1.586 3.964v12.215c0 .793.42 1.072 1.259 1.025l13.448-.792c.793-.047.887-.606.887-1.166V6.958c0-.56-.467-.84-1.026-.793l-13.682.793c-.653.047-.886.42-.886 1.214zm11.754-.047c.14 0 .327.14.327.373v9.043c0 .56-.374.793-.84.84l-2.006.14c-.373.047-.466-.187-.466-.42v-6.39l-4.152 6.577c-.233.373-.513.513-.933.513h-.746c-.28 0-.466-.233-.466-.513V8.87c0-.513.373-.793.793-.84l2.1-.14c.373-.047.466.186.466.42v5.783l3.872-6.11c.233-.373.56-.513.886-.513l.167.047z"/>
+          </svg>
+          <span class="notion-status-dot disconnected" id="notionHeaderStatusDot"></span>
+          <span class="btn-text" id="notionHeaderStatusText">Notion</span>
+        </button>
+
         <!-- Add New Note Button -->
         <button id="addNoteBtn" class="btn-primary btn-compact" title="Add another note to this task" aria-label="Add another note to this task">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -173,6 +181,7 @@
 
   <!-- Scripts -->
   <script src="storage.js"></script>
+  <script src="notion-ui.js"></script>
   <script src="note.js"></script>
 </body>
 </html>

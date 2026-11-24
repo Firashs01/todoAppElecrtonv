@@ -366,15 +366,12 @@
   function startLiveTicker() {
     if (liveTickerTimer) clearInterval(liveTickerTimer);
     liveTickerTimer = setInterval(() => {
-      // If window/document is active, time values will bump live
-      const isDocumentActive = (!document.hidden && document.hasFocus());
-      if (isDocumentActive) {
-        FocusFlowStorage.flushActiveTime();
-        const summary = FocusFlowStorage.getMetricsSummary();
-        DOM.kpiTotalTime.textContent = summary.global.totalTimeFormatted;
-        DOM.kpiTodayTime.textContent = summary.today.timeFormatted;
-        DOM.todayTimeSpent.textContent = summary.today.timeFormatted;
-      }
+      // Continuously update live time metrics while app is running
+      FocusFlowStorage.flushActiveTime();
+      const summary = FocusFlowStorage.getMetricsSummary();
+      DOM.kpiTotalTime.textContent = summary.global.totalTimeFormatted;
+      DOM.kpiTodayTime.textContent = summary.today.timeFormatted;
+      DOM.todayTimeSpent.textContent = summary.today.timeFormatted;
     }, 1000);
   }
 
